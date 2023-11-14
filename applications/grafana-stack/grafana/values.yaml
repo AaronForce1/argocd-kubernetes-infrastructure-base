@@ -164,7 +164,7 @@ grafana:
   useStatefulSet: true
 
 grafanaExternalSecret:
-  enabled: true
+  enabled: false
   secretStore: secretstore
   secrets:
     - secretKey: admin-username
