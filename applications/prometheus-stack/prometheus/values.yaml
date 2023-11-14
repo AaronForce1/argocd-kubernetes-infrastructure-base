@@ -160,3 +160,4 @@ alertsToLoad: # only alets under these directories will be loaded into alert-man
 grafanaDomain: ${ARGOCD_ENV_OPERATOR_DOMAIN}
 operatorCluster: "" # operator
 appCluster: "${ARGOCD_ENV_NAMESPACE}"
+environment: "${ARGOCD_ENV_ENVIRONMENT}"
