@@ -1,0 +1,29 @@
+argocd:
+  namespace: grafana-stack
+  releaseName: postgresql
+
+postgresql:
+  nameOverride: postgresql
+  fullnameOverride: postgresql
+  kubeNamespace: grafana-stack
+  architecture: standalone
+  primary:
+    pgHbaConfiguration: |-
+      host all all localhost password
+    resources:
+      limits: {}
+      requests:
+        memory: 256Mi
+        cpu: 50m
+  auth:
+    username: grafana
+    database: grafana
+    existingSecret: grafana-postgres-credentials
+  global:
+    storageClass: gp3-retain
+  image:
+    registry: registry.tech.hextech.io
+    repository: library/postgres
+    tag: "14.5"
+    pullPolicy: IfNotPresent
+    

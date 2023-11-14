@@ -1,0 +1,86 @@
+argocd:
+  namespace: cert-manager
+  releaseName: cert-manager
+
+cert-manager:
+  nameOverride: cert-manager
+  fullnameOverride: cert-manager
+  kubeNamespace: cert-manager
+
+  serviceAccount:
+    annotations:
+      eks.amazonaws.com/role-arn: arn:aws:iam::${ARGOCD_ENV_AWS_ACCOUNT}:role/eks/${ARGOCD_ENV_CLUSTER}/${ARGOCD_ENV_ENVIRONMENT}/eks-${ARGOCD_ENV_CLUSTER}-${ARGOCD_ENV_ENVIRONMENT}-cert-manager
+
+  global:
+    leaderElection:
+      namespace: "cert-manager"
+
+  installCRDs: true
+
+  extraArgs:
+    # Use this flag to set a namespace that cert-manager will use to store
+    # supporting resources required for each ClusterIssuer (default is kube-system)
+    - --cluster-resource-namespace=cert-manager
+    # - --dns01-recursive-nameservers-only  # see https://cert-manager.io/docs/configuration/acme/dns01/
+    - --dns01-recursive-nameservers="8.8.8.8:53"
+    # When this flag is enabled, secrets will be automatically removed when the certificate resource is deleted
+    - --enable-certificate-owner-ref=false
+
+  resources: 
+    requests:
+      cpu: 20m
+      memory: 32Mi
+    limits:
+      cpu: 100m
+      memory: 128Mi
+
+  podLabels: 
+    cluster: ${ARGOCD_ENV_CLUSTER}
+    project: ${ARGOCD_ENV_NAMESPACE}
+    env: ${ARGOCD_ENV_ENVIRONMENT}
+    tier: infra
+    version: 1.7.1
+
+  prometheus:
+    enabled: true
+    servicemonitor:
+      enabled: false
+
+  webhook: 
+    resources:
+      requests:
+        cpu: 150m
+        memory: 32Mi
+      limits:
+        cpu: 200m
+        memory: 32Mi
+
+  cainjector:
+    resources:
+      requests:
+        cpu: 20m
+        memory: 100Mi
+      limits:
+        cpu: 20m
+        memory: 200Mi
+
+serviceMonitor:
+  enabled: true
+  labels:
+    prometheus: ${ARGOCD_ENV_CLUSTER}
+  matchLabels:
+    app.kubernetes.io/name: cert-manager
+    app.kubernetes.io/instance: cert-manager
+    app.kubernetes.io/component: controller
+  servicePortName: tcp-prometheus-servicemonitor
+  honorLabels: true
+  relabelings:
+    - sourceLabels: [__meta_kubernetes_pod_label_cluster]
+      action: replace
+      targetLabel: cluster
+    - sourceLabels: [__meta_kubernetes_pod_label_project]
+      action: replace
+      targetLabel: project
+    - sourceLabels: [__meta_kubernetes_pod_label_env]
+      action: replace
+      targetLabel: env

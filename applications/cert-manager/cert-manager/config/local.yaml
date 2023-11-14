@@ -1,0 +1,8 @@
+cert-manager:
+  prometheus:
+    enabled: false
+    servicemonitor:
+      enabled: false
+
+serviceMonitor:
+  enabled: false

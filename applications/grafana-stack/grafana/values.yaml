@@ -1,0 +1,180 @@
+argocd:
+  namespace: grafana-stack
+  releaseName: grafana
+  syncOptionReplace:
+    - dashboard-geth-dashboard
+
+grafana:
+  nameOverride: grafana
+  fullnameOverride: grafana
+  kubeNamespace: grafana-stack
+  image:
+    repository: registry.tech.hextech.io/grafana/grafana
+    # Overrides the Grafana image tag whose default is the chart appVersion
+    tag: "9.5.1"
+    pullPolicy: IfNotPresent
+    
+  replicas: 1
+
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 4Gi
+    requests:
+      cpu: 500m
+      memory: 2Gi
+
+  autoscaling:
+    # TODO:
+    # horizontal-pod-autoscaler  deployments/scale.apps "grafana" not found
+    enabled: false
+    minReplicas: 2
+    maxReplicas: 8
+    metrics:
+    - type: Resource
+      resource:
+        name: memory
+        targetAverageUtilization: 70
+    - type: Resource
+      resource:
+        name: cpu
+        targetAverageUtilization: 70
+
+  datasources: 
+    datasources.yaml:
+      apiVersion: 1
+      datasources:
+      - name: prometheus
+        type: prometheus
+        url: http://thanos-query-frontend.prometheus-stack.svc:9090
+        access: proxy
+        isDefault: true
+      - name: loki
+        type: loki
+        access: proxy
+        url: http://loki-gateway
+        jsonData:
+          maxLines: 10000
+          timeout: 600s
+  persistence:
+    type: statefulset
+    enabled: true
+    storageClassName: gp3-retain
+
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    annotations: 
+      cert-manager.io/cluster-issuer: letsencrypt-http01
+      nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+      nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    hosts:
+      - grafana.${ARGOCD_ENV_DOMAIN}
+
+  # Temp only
+  adminUser: admin
+  adminPassword: admin
+
+  initChownData:
+    ## initChownData container image
+    image:
+      repository: registry.tech.hextech.io/library/busybox
+      tag: "1.31.1"
+    pullPolicy: IfNotPresent
+
+  sidecar:
+    image:
+      repository: registry.tech.hextech.io/kiwigrid/k8s-sidecar
+      tag: "1.19.2"
+    imagePullPolicy: IfNotPresent
+    resources:
+      limits:
+        cpu: 200m
+        memory: 100Mi
+      requests:
+        cpu: 150m
+        memory: 50Mi
+    dashboards:
+      enabled: true
+      searchNamespace: "grafana-stack"
+      resource: configmap
+      provider:
+        updateIntervalSeconds: 10
+        foldersFromFilesStructure: true
+      defaultFolderName: null
+      folderAnnotation: grafana_dashboard_folder
+      
+  rbac:
+    namespaced: true
+
+  grafana.ini:
+    auth.google:
+      enabled: true
+      client_id: $__file{/etc/secrets/google/client_id}
+      client_secret: $__file{/etc/secrets/google/client_secret}
+      scopes: https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email
+      auth_url: https://accounts.google.com/o/oauth2/auth
+      token_url: https://accounts.google.com/o/oauth2/token
+      allowed_domains: hextech.io hextrust.com
+      allow_sign_up: true
+    server:
+      root_url: https://grafana.${ARGOCD_ENV_DOMAIN}
+    users:
+      auto_assign_org: true
+      auto_assign_org_id: 1
+      auto_assign_org_role: Editor
+    auth.anonymous:
+      enabled: true
+      org_name: Dashboard
+      org_role: Viewer
+      hide_version: false
+    session:
+      provider: file
+      provider_config: sessions
+      cookie_name: grafana_sess
+      cookie_secure: false
+      session_life_time: 86400
+      gc_interval_time: 86400
+    database:
+      type: postgres
+      host: postgresql:5432
+      name: grafana
+      user: grafana
+      password: $__file{/etc/secrets/postgres/password}
+
+  extraSecretMounts:
+  - name: auth-google
+    secretName: grafana-google-oauth-credentials
+    defaultMode: 0440
+    mountPath: /etc/secrets/google
+    readOnly: true
+  - name: auth-postgresql
+    secretName: grafana-postgres-credentials
+    defaultMode: 0440
+    mountPath: /etc/secrets/postgres
+    readOnly: true    
+
+  podLabels: 
+    cluster: ${ARGOCD_ENV_CLUSTER}
+    project: ${ARGOCD_ENV_CLUSTER}
+    env: ${ARGOCD_ENV_ENVIRONMENT}
+    tier: infra
+    version: 6.29.11
+
+  useStatefulSet: true
+
+grafanaExternalSecret:
+  enabled: true
+  secretStore: secretstore
+  secrets:
+    - secretKey: admin-username
+      remoteRef:
+        key: /grafana/${ARGOCD_ENV_ENVIRONMENT}-${ARGOCD_ENV_CLUSTER}/admin/username
+    - secretKey: admin-password
+      remoteRef:
+        key: /grafana/${ARGOCD_ENV_ENVIRONMENT}-${ARGOCD_ENV_CLUSTER}/admin/password
+
+
+# dashboardsToLoad: {} # directory name under dashboards
+dashboardsToLoad: # only dashboards under these directories will be loaded into grafana 
+  - infrastructure

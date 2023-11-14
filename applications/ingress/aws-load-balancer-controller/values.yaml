@@ -1,0 +1,19 @@
+argocd:
+  namespace: aws-load-balancer-controller
+  releaseName: aws-load-balancer-controller
+
+aws-load-balancer-controller:
+  clusterName: ${ARGOCD_ENV_EKS_CLUSTER_ID}
+
+  serviceAccount:
+    create: true
+    annotations:
+      eks.amazonaws.com/role-arn: arn:aws:iam::${ARGOCD_ENV_AWS_ACCOUNT}:role/eks/${ARGOCD_ENV_NAMESPACE}-${ARGOCD_ENV_ENVIRONMENT}-aws-load-balancer-controller
+    name: "aws-load-balancer-controller"
+
+  resources:
+    requests:
+      cpu: 25m
+      memory: 150Mi
+    limits:
+      memory: 150Mi

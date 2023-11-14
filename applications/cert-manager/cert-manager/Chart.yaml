@@ -1,0 +1,11 @@
+apiVersion: v2
+appVersion: v1.7.1
+dependencies:
+- name: cert-manager
+  version: v1.7.1
+  repository: https://charts.jetstack.io
+description: A parent chart to include our own objects, e.g. cluster-issuer
+maintainers:
+- name: marcuscheng
+name: cert-manager
+version: 1.0.0

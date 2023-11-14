@@ -1,0 +1,36 @@
+{{ if .Values.serviceMonitor.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ index .Values "cert-manager" "fullnameOverride" }}
+  namespace: {{ index .Values "cert-manager" "kubeNamespace" }}
+  labels:
+    app: {{ index .Values "cert-manager" "fullnameOverride" }}
+    {{- with .Values.serviceMonitor.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  {{- with .Values.serviceMonitor.namespaceSelector }}
+  namespaceSelector:
+  {{- toYaml . | nindent 4 }}
+  {{- end }}
+  selector:
+    {{- with .Values.serviceMonitor.matchLabels }}
+    matchLabels:
+      {{- toYaml . | nindent 6 }}
+  {{- end }}
+  endpoints:
+    - port: {{ .Values.serviceMonitor.servicePortName | default "metrics" }}
+      interval: {{ .Values.serviceMonitor.interval | default "60s" }}
+      honorLabels: {{ .Values.serviceMonitor.honorLabels | default "true"  }}
+      path: {{ .Values.serviceMonitor.path | default "/metrics" }}
+      scrapeTimeout: {{ .Values.serviceMonitor.scrapeTimeout | default "10s" }}
+      {{- with .Values.serviceMonitor.relabelings }}
+      relabelings:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.serviceMonitor.metricRelabelings }}
+      metricRelabelings:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{ end }}

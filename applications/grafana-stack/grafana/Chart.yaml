@@ -1,0 +1,13 @@
+apiVersion: v2
+appVersion: 9.5.1
+description: The leading tool for querying and visualizing time series and metrics.
+kubeVersion: ^1.8.0-0
+name: grafana
+sources:
+- https://github.com/grafana/grafana
+type: application
+version: 6.56.1
+dependencies:
+- name: grafana
+  version: 6.56.1
+  repository: https://grafana.github.io/helm-charts

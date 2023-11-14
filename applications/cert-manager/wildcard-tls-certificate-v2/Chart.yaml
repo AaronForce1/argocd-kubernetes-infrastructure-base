@@ -1,0 +1,7 @@
+apiVersion: v2
+appVersion: v2.0.0
+description: A Helm chart for wildcard tls certificate
+maintainers:
+- name: wildcard-tls-certificate
+name: wildcard-tls-certificate
+version: 1.0.0

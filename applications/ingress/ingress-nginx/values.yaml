@@ -1,0 +1,65 @@
+argocd:
+  namespace: ingress
+  releaseName: ingress-nginx  
+
+ingress-nginx:
+  nameOverride: ingress-nginx
+  fullnameOverride: ingress-nginx
+
+  controller:
+    replicaCount: 1
+
+    autoscaling:
+      enabled: true
+      minReplicas: 1
+      maxReplicas: 3
+      targetCPUUtilizationPercentage: 70
+      targetMemoryUtilizationPercentage: 70
+
+    configAnnotations:
+      nginx.ingress.kubernetes.io/ssl-redirect: "true"
+      nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+
+    podLabels:
+      cluster: ${ARGOCD_ENV_CLUSTER}
+      project: ${ARGOCD_ENV_CLUSTER}
+      env: ${ARGOCD_ENV_ENVIRONMENT}
+      tier: infra
+      version: 4.3.0
+
+    config:
+      use-forwarded-headers: "true"
+      compute-full-forwarded-for: "true"
+      use-proxy-protocol: "true"
+      limit-req-status-code: 429
+
+    service:
+      annotations:
+        service.beta.kubernetes.io/aws-load-balancer-type: nlb
+        service.beta.kubernetes.io/aws-load-balancer-backend-protocol: tcp
+        service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled: 'true'
+        service.beta.kubernetes.io/aws-load-balancer-scheme: "internet-facing"
+        service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: "instance"
+        service.beta.kubernetes.io/aws-load-balancer-target-group-attributes: proxy_protocol_v2.enabled=true
+        service.beta.kubernetes.io/aws-load-balancer-additional-resource-tags: "Name=eks-${ARGOCD_ENV_NAMESPACE}-${ARGOCD_ENV_ENVIRONMENT},Environment=${ARGOCD_ENV_ENVIRONMENT},Namespace=${ARGOCD_ENV_NAMESPACE},Product=eks"
+    
+    extraArgs:
+      ## We use wildcard tls cert for all endpoints of nginx ingress to avoid hitting letsencrypt rate limit
+      default-ssl-certificate: "ingress/${ARGOCD_ENV_DOMAIN}-wildcard-tls-secret" 
+    
+    metrics:
+      enabled: true
+      serviceMonitor:
+        enabled: true
+        additionalLabels: 
+          prometheus: ${ARGOCD_ENV_CLUSTER}
+        relabelings:
+          - sourceLabels: [__meta_kubernetes_pod_label_cluster]
+            action: replace
+            targetLabel: cluster
+          - sourceLabels: [__meta_kubernetes_pod_label_project]
+            action: replace
+            targetLabel: project
+          - sourceLabels: [__meta_kubernetes_pod_label_env]
+            action: replace
+            targetLabel: env

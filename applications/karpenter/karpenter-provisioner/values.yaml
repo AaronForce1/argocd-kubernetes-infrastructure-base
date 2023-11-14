@@ -1,0 +1,65 @@
+argocd:
+  namespace: karpenter
+  releaseName: karpenter-provisioner
+
+provisioners:
+  ####################################
+  ### app-provisioner ###
+  ####################################
+  - name: app-provisioner
+    kubeletConfiguration:
+      evictionHard: 10%
+    ttlSecondsAfterEmpty: 30
+    consolidation:
+      enabled: true
+    taints: []
+    labels:
+      Product: application-base
+      Environment: ${ARGOCD_ENV_ENVIRONMENT}
+      Namespace: ${ARGOCD_ENV_NAMESPACE}
+    requirements:
+      - key: "karpenter.sh/capacity-type"
+        operator: In
+        values: [ "spot", "on-demand" ]
+      - key: kubernetes.io/os
+        operator: In
+        values:
+          - linux
+      - key: kubernetes.io/arch
+        operator: In
+        values:
+          - arm64
+      - key: karpenter.k8s.aws/instance-category
+        operator: In
+        values:
+          - c
+          - m
+          - r
+          - t
+      - key: "node.kubernetes.io/instance-type"
+        operator: NotIn
+        values:
+          - C1
+          - CC1
+          - CC2
+          - CG1
+          - CG2
+          - CR1
+          - G1
+          - G2
+          - HI1
+          - HS1
+          - M1
+          - M2
+          - M3
+          - T1
+      - key: karpenter.k8s.aws/instance-generation
+        operator: Gt
+        values:
+          - '2'
+    limits:
+      resources:
+        cpu: 10
+        memory: 32Gi
+    providerRef:
+      name: karpenter-node-template

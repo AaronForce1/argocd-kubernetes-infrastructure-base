@@ -1,0 +1,23 @@
+argocd:
+  namespace: default
+  releaseName: "kube-toolkit"
+
+generic-helm-chart:
+  nameOverride: "kube-toolkit"
+  fullnameOverride: "kube-toolkit"
+  cluster: "${ARGOCD_ENV_CLUSTER}"
+  environment: "${ARGOCD_ENV_ENVIRONMENT}"
+  
+  serviceAccount:
+    create: true
+    annotations: {}
+    name: ""
+  
+  deployment:
+    replicaCount: 1
+    image:
+      repository: aaronforce1/kube-toolkit
+      pullPolicy: IfNotPresent
+      tag: "v0.0.1"
+    command: [ "tail" ]
+    args: [ "-f", "/dev/null" ]

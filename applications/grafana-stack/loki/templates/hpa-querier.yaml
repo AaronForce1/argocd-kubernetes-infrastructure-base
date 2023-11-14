@@ -1,0 +1,24 @@
+{{- if index .Values "loki-distributed" "querier" "autoscaling" "enabled"}}
+apiVersion: autoscaling/v2beta1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: loki-querier
+  labels:
+    {{- include "loki.querierLabels" . | nindent 4 }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: StatefulSet
+    name: loki-querier
+  minReplicas: {{ index .Values "loki-distributed" "querier" "autoscaling" "minReplicas" }}
+  maxReplicas: {{ index .Values "loki-distributed" "querier" "autoscaling" "maxReplicas" }}
+  metrics:
+    - type: Resource
+      resource:
+        name: memory
+        targetAverageUtilization: {{ index .Values "loki-distributed" "querier" "autoscaling" "targetMemoryUtilizationPercentage" }}
+    - type: Resource
+      resource:
+        name: cpu
+        targetAverageUtilization: {{ index .Values "loki-distributed" "querier" "autoscaling" "targetCPUUtilizationPercentage" }}
+{{- end }}

@@ -1,0 +1,80 @@
+argocd:
+  namespace: kube-system
+  releaseName: aws-ebs-csi-driver
+
+aws-ebs-csi-driver: 
+  kubeNamespace: kube-system
+  sidecars:
+    snapshotter:
+      # Enables the snapshotter sidecar even if the snapshot CRDs are not installed
+      forceEnable: true
+      env: []
+      image:
+        pullPolicy: IfNotPresent
+        repository: public.ecr.aws/eks-distro/kubernetes-csi/external-snapshotter/csi-snapshotter
+        tag: "v6.2.2-eks-1-27-7"
+      logLevel: 2
+      additionalArgs: []
+      resources: {}
+      securityContext:
+        readOnlyRootFilesystem: true
+        allowPrivilegeEscalation: false
+  controller:
+    enableMetrics: true
+    serviceAccount:
+      annotations: 
+        eks.amazonaws.com/role-arn: arn:aws:iam::${ARGOCD_ENV_AWS_ACCOUNT}:role/eks/${ARGOCD_ENV_CLUSTER}/${ARGOCD_ENV_ENVIRONMENT}/eks-${ARGOCD_ENV_CLUSTER}-${ARGOCD_ENV_ENVIRONMENT}-AmazonEKS-CSI_Driver-role
+  storageClasses:
+    - name: gp3-retain
+      annotations:
+        storageclass.kubernetes.io/is-default-class: "true"
+      volumeBindingMode: WaitForFirstConsumer
+      reclaimPolicy: Retain
+      allowVolumeExpansion: true
+      parameters:
+        type: "gp3"
+        encrypted: "true"
+        tagSpecification_1: "Product=eks"
+        tagSpecification_2: "Namespace=${ARGOCD_ENV_CLUSTER}"
+        tagSpecification_3: "Environment=${ARGOCD_ENV_ENVIRONMENT}"
+    - name: gp2
+      volumeBindingMode: WaitForFirstConsumer
+      reclaimPolicy: Retain
+      allowVolumeExpansion: true
+      parameters:
+        type: "gp2"
+        encrypted: "true"
+        tagSpecification_1: "Product=eks"
+        tagSpecification_2: "Namespace=${ARGOCD_ENV_CLUSTER}"
+        tagSpecification_3: "Environment=${ARGOCD_ENV_ENVIRONMENT}"
+  customLabels:
+    cluster: eks-${ARGOCD_ENV_CLUSTER}-${ARGOCD_ENV_ENVIRONMENT}
+    project: ${ARGOCD_ENV_CLUSTER}
+    env: ${ARGOCD_ENV_ENVIRONMENT}
+    tier: infra
+    version: 3.1.0
+  resources:
+    limits:
+      cpu: 200m
+      memory: 256Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  node:
+    tolerations:
+      - key: "dedicated"
+        operator: "Equal"
+        value: "blockchain-nodes"
+      - key: "dedicated"
+        operator: "Equal"
+        value: "kafka"
+      - key: "dedicated"
+        operator: "Equal"
+        value: "kafka-uat"
+    resources: 
+    limits:
+      cpu: 200m
+      memory: 256Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi

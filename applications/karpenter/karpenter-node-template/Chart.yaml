@@ -1,0 +1,4 @@
+
+apiVersion: v2
+name: karpenter-node-template
+version: 1.0.0

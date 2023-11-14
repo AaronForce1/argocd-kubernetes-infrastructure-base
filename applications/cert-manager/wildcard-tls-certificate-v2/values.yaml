@@ -1,0 +1,16 @@
+certificates:
+- name: ${ARGOCD_ENV_DOMAIN}-wildcard-tls
+  namespace: ingress
+  spec:
+    dnsNames:
+      - "${ARGOCD_ENV_DOMAIN}"
+      - "*.${ARGOCD_ENV_DOMAIN}"
+    secretName: ${ARGOCD_ENV_DOMAIN}-wildcard-tls-secret
+    issuerRef: 
+      kind: ClusterIssuer
+      name: letsencrypt-dns01-${ARGOCD_ENV_DOMAIN}
+    secretTemplate:
+      annotations:
+        reflector.v1.k8s.emberstack.com/reflection-allowed: "true"  
+        reflector.v1.k8s.emberstack.com/reflection-allowed-namespaces: "${ARGOCD_ENV_CLUSTER}-${ARGOCD_ENV_ENVIRONMENT}"  # Control destination namespaces
+        reflector.v1.k8s.emberstack.com/reflection-auto-enabled: "true" # Auto create reflection for matching namespaces

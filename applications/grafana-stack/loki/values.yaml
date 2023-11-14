@@ -1,0 +1,297 @@
+argocd:
+  namespace: grafana-stack
+  releaseName: loki
+
+loki-distributed: 
+  fullnameOverride: loki
+  nameOverride: loki
+  kubeNamespace: grafana-stack
+  
+  global:
+    image:
+      registry: registry.tech.hextech.io
+
+  loki:
+    config: |
+      auth_enabled: false
+      server:
+        http_listen_port: 3100
+        grpc_server_max_recv_msg_size: 734003200
+        grpc_server_max_send_msg_size: 734003200
+        http_server_read_timeout: 5m
+      common:
+        compactor_address: http://{{ include "loki.compactorFullname" . }}:3100
+      querier:
+        engine:
+          timeout: 5m
+        query_timeout: 5m
+      distributor:
+        ring:
+          kvstore:
+            store: memberlist
+      memberlist:
+        join_members:
+          - {{ include "loki.fullname" . }}-memberlist
+      ingester:
+        lifecycler:
+          ring:
+            kvstore:
+              store: memberlist
+            replication_factor: 1
+        chunk_idle_period: 1h
+        chunk_block_size: 262144
+        chunk_encoding: snappy
+        chunk_retain_period: 1m
+        chunk_target_size: 1572864
+        max_transfer_retries: 0
+        max_chunk_age: 2h
+        wal:
+          dir: /var/loki/wal
+      limits_config:
+        enforce_metric_name: false
+        reject_old_samples: true
+        reject_old_samples_max_age: 168h
+        max_cache_freshness_per_query: 10m
+        split_queries_by_interval: 15m
+        max_entries_limit_per_query: 100000
+        max_query_series: 10000
+      {{- if .Values.loki.schemaConfig}}
+      schema_config:
+      {{- toYaml .Values.loki.schemaConfig | nindent 2}}
+      {{- end}}
+      {{- if .Values.loki.storageConfig}}
+      storage_config:
+      {{- if .Values.indexGateway.enabled}}
+      {{- $indexGatewayClient := dict "server_address" (printf "dns:///%s:9095" (include "loki.indexGatewayFullname" .)) }}
+      {{- $_ := set .Values.loki.storageConfig.boltdb_shipper "index_gateway_client" $indexGatewayClient }}
+      {{- end}}
+      {{- toYaml .Values.loki.storageConfig | nindent 2}}
+      {{- end}}
+      chunk_store_config:
+        max_look_back_period: 0s
+      table_manager:
+        retention_deletes_enabled: false
+        retention_period: 0s
+      query_range:
+        align_queries_with_step: true
+        max_retries: 5
+        cache_results: true
+        results_cache:
+          cache:
+            enable_fifocache: true
+            fifocache:
+              max_size_items: 1024
+              validity: 24h
+      frontend_worker:
+        frontend_address: {{ include "loki.queryFrontendFullname" . }}:9095
+        grpc_client_config:
+          max_send_msg_size: 734003200
+      frontend:
+        log_queries_longer_than: 5s
+        compress_responses: true
+        tail_proxy_url: http://{{ include "loki.querierFullname" . }}:3100
+      compactor:
+        shared_store: filesystem
+        
+      ruler:
+        storage:
+          type: local
+          local:
+            directory: /etc/loki/rules
+        ring:
+          kvstore:
+            store: memberlist
+        rule_path: /tmp/loki/scratch
+        alertmanager_url: http://alert-manager-alertmanager.prometheus-stack:9093
+
+    schemaConfig:
+      configs:
+        - from: 2020-09-07
+          store: boltdb-shipper
+          object_store: s3
+          schema: v11
+          index:
+            prefix: loki_index_
+            period: 24h
+
+    storageConfig:
+      aws: 
+        s3: eks-${ARGOCD_ENV_CLUSTER}-${ARGOCD_ENV_ENVIRONMENT}-eks-${ARGOCD_ENV_CLUSTER}-${ARGOCD_ENV_ENVIRONMENT}-loki
+        region: ap-southeast-1
+        http_config: 
+          response_header_timeout: 600s
+      boltdb_shipper:
+        active_index_directory: /var/loki/index
+        shared_store: s3
+        cache_location: /var/loki/boltdb-cache
+
+  serviceAccount:
+    annotations:
+      eks.amazonaws.com/role-arn: arn:aws:iam::${ARGOCD_ENV_AWS_ACCOUNT}:role/eks/${ARGOCD_ENV_CLUSTER}/${ARGOCD_ENV_ENVIRONMENT}/eks-${ARGOCD_ENV_CLUSTER}-${ARGOCD_ENV_ENVIRONMENT}-s3-custom-role-eks-${ARGOCD_ENV_CLUSTER}-${ARGOCD_ENV_ENVIRONMENT}-loki
+
+  gateway:
+    image:
+      registry: registry.tech.hextech.io
+      repository: nginxinc/nginx-unprivileged
+      tag: "1.19-alpine"
+      pullPolicy: IfNotPresent
+
+    replicas: 2
+    autoscaling:
+      enabled: true
+      minReplicas: 2
+      maxReplicas: 10
+      targetCPUUtilizationPercentage: 80
+      targetMemoryUtilizationPercentage: 80
+    resources:
+      requests:
+        memory: 128Mi
+        cpu: 50m
+      limits:
+        memory: 256Mi
+        cpu: 100m
+    ingress: 
+      enabled: true
+      ingressClassName: nginx
+      annotations: 
+        nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+        nginx.ingress.kubernetes.io/ssl-redirect: "true"
+      hosts:
+        - host: loki-gateway.${ARGOCD_ENV_DOMAIN}
+          paths:
+            - path: /
+              pathType: Prefix
+    maxUnavailable: 1
+
+  ruler:
+    enabled: true
+    replicas: 2    
+    resources:
+      requests:
+        memory: 128Mi
+        cpu: 50m
+      limits:
+        memory: 512Mi
+        cpu: 100m
+    maxUnavailable: 1
+    
+    # extraVolumeMounts: 
+    # - name: loki-rules-infrastructure
+    #   mountPath: /etc/loki/rules/infrastructure
+    # extraVolumes:
+    # - configMap:
+    #     defaultMode: 420
+    #     name: loki-rules-infrastructure
+    #   name: loki-rules-infrastructure
+
+    extraVolumeMounts:
+      - name: alert-rules-generated
+        mountPath: /etc/loki/rules/fake
+    
+    extraVolumes:
+      - name: alert-rules
+        configMap:
+          name: loki-alert-rules-configmap
+      - name: alert-rules-generated
+        emptyDir: {}
+      - name: alert-rules-generator
+        configMap:
+          name: loki-alert-rules-generator-configmap
+          defaultMode: 0050 # read and execute only by user 10001
+    
+    initContainers: 
+      # 1. attach the raw rules to this container
+      # 2. run generate script to add additional labels and annotations
+      # 3. copy the generated rules to the volume mount used by alert manager
+      - name: init-configmap
+        image: mikefarah/yq
+        command: ["/bin/sh", "-c"]
+        args: ["/tmp/scripts/generate.sh"]
+        env:
+          - name: RULES_PATH
+            value: "/tmp/rules"
+          - name: GENERATED_RULES_PATH
+            value: "/etc/loki/rules/fake"
+        volumeMounts:
+          - name: alert-rules-generated
+            mountPath: /etc/loki/rules/fake
+          - name: alert-rules
+            mountPath: /tmp/rules
+          - name: alert-rules-generator
+            mountPath: /tmp/scripts
+
+    
+
+  ingester:
+    replicas: 2
+    autoscaling:
+      enabled: true
+      minReplicas: 2
+      maxReplicas: 8
+      targetCPUUtilizationPercentage: 80
+      targetMemoryUtilizationPercentage: 80
+    resources:
+      requests:
+        memory: 512Mi
+        cpu: 200m
+      limits:
+        memory: 1Gi
+        cpu: 400m
+    maxUnavailable: 1
+
+  distributor:
+    replicas: 2
+    autoscaling:
+      enabled: true
+      minReplicas: 2
+      maxReplicas: 8
+      targetCPUUtilizationPercentage: 80
+      targetMemoryUtilizationPercentage: 80
+    resources:
+      requests:
+        memory: 512Mi
+        cpu: 50m
+      limits:
+        memory: 1Gi
+        cpu: 100m
+    maxUnavailable: 1
+
+  querier:
+    replicas: 2
+    autoscaling:
+      enabled: true
+      minReplicas: 2
+      maxReplicas: 8
+      targetCPUUtilizationPercentage: 60
+      targetMemoryUtilizationPercentage: 60
+    resources:
+      requests:
+        memory: 1Gi
+        cpu: "1.5"
+      limits:
+        memory: 4Gi
+        cpu: "2"
+    maxUnavailable: 1
+  
+  queryFrontend:
+    replicas: 2
+    autoscaling:
+      enabled: true
+      minReplicas: 2
+      maxReplicas: 10
+      targetCPUUtilizationPercentage: 60
+      targetMemoryUtilizationPercentage: 60
+    resources:
+      requests:
+        memory: 1Gi
+        cpu: "1"
+      limits:
+        memory: 2Gi
+        cpu: "1.5"
+    maxUnavailable: 1
+
+  compactor:
+    enabled: true
+
+# rulesToLoad:
+#   - infrastructure

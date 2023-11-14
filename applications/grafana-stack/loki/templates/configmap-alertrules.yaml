@@ -1,0 +1,28 @@
+{{- $namespace := .Release.Namespace -}}
+{{- $global := . }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-alert-rules-configmap
+  namespace: {{ $namespace }}
+data:
+# 1. Get all files under rules/
+# 2. Get only the file name without path and extention - e.g. rules/v2/common.yaml -> common
+# 3. Compare the file name with the list of files to load, load the file if match
+# 4. Remove dash from file name - e.g. rules/v2/common.yaml to rules-v2-common.yaml
+# 5. Add default label and annotation in init-container
+
+{{- range $path, $content := .Files.Glob "rules/**.yaml" }}
+{{- $ruleFolder := regexReplaceAll "(^.*)\\/(.*)\\/(.*).yaml$" $path "${2}" }}
+{{- range $toLoadRulefolder := $global.Values.alertRules.fileToLoad }}
+
+{{- if eq $ruleFolder $toLoadRulefolder }}
+  {{ $path | replace "/" "-" }}: |-
+  {{- $ruleContent := $content | toYaml | b64dec }}
+
+  {{- $defaultGroupName := regexReplaceAll "(^.*)\\/((.*)\\/(.*)).yaml$" $path "${2}" }}
+  {{- $ruleContent | replace "{{ defaultGroupName }}" $defaultGroupName | nindent 4 }}
+
+{{- end }}
+{{- end }}
+{{- end }}

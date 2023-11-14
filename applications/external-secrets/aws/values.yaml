@@ -1,0 +1,74 @@
+argocd:
+  namespace: external-secrets
+  releaseName: external-secrets
+
+clusterSecretStore: 
+  enabled: true
+  name: secretstore
+
+serviceMonitor:
+  enabled: true
+  labels:
+    prometheus: ${ARGOCD_ENV_CLUSTER}
+  matchLabels:
+    app.kubernetes.io/name: external-secrets
+    app.kubernetes.io/instance: external-secrets
+  servicePortName: metrics
+  interval: 1m
+  scrapeTimeout: 10s 
+  path: /metrics
+  honorLabels: true
+  relabelings:
+    - sourceLabels: [__meta_kubernetes_pod_label_cluster]
+      action: replace
+      targetLabel: cluster
+    - sourceLabels: [__meta_kubernetes_pod_label_project]
+      action: replace
+      targetLabel: project
+    - sourceLabels: [__meta_kubernetes_pod_label_env]
+      action: replace
+      targetLabel: env
+  metricRelabelings:
+    # We just need this metric for now  
+    - sourceLabels: [__name__]
+      regex: '(externalsecret_status_condition)'
+      action: keep
+  
+external-secrets:
+  nameOverride: external-secrets
+  fullnameOverride: external-secrets
+  kubeNamespace: external-secrets
+  replicaCount: 1
+  serviceAccount:
+    # -- Specifies whether a service account should be created.
+    create: true
+    # -- Annotations to add to the service account.
+    annotations: 
+      eks.amazonaws.com/role-arn: arn:aws:iam::${ARGOCD_ENV_AWS_ACCOUNT}:role/eks/${ARGOCD_ENV_CLUSTER}/${ARGOCD_ENV_ENVIRONMENT}/eks-${ARGOCD_ENV_CLUSTER}-${ARGOCD_ENV_ENVIRONMENT}-external_secrets
+    # -- The name of the service account to use.
+    # If not set and create is true, a name is generated using the fullname template.
+    name: "external-secrets"  
+
+  podLabels: 
+    cluster: ${ARGOCD_ENV_CLUSTER}
+    project: ${ARGOCD_ENV_CLUSTER}
+    env: ${ARGOCD_ENV_ENVIRONMENT}
+    tier: infra
+    version: 8.5.5
+
+  resources: 
+    requests:
+      cpu: 10m
+      memory: 32Mi
+    limits:
+      cpu: 100m
+      memory: 128Mi
+
+  prometheus:
+    enabled: true
+    service:
+      port: 8080
+
+  # Built-in service monitor doesn't support relabel and metric relabel
+  serviceMonitor:
+    enabled: false

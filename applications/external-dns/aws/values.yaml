@@ -1,0 +1,66 @@
+argocd:
+  namespace: external-dns
+  releaseName: external-dns
+
+external-dns:
+  nameOverride: external-dns
+  fullnameOverride: external-dns
+
+  logFormat: json
+
+  serviceAccount:
+    annotations:
+      eks.amazonaws.com/role-arn: arn:aws:iam::${ARGOCD_ENV_AWS_ACCOUNT}:role/eks/${ARGOCD_ENV_CLUSTER}/${ARGOCD_ENV_ENVIRONMENT}/eks-${ARGOCD_ENV_CLUSTER}-${ARGOCD_ENV_ENVIRONMENT}-external-dns
+
+  image:
+    registry: k8s.gcr.io
+    repository: external-dns/external-dns
+    tag: v0.13.4
+
+  sources:
+    - ingress
+    - service
+
+  policy: upsert-only
+
+  registry: txt
+  txtOwnerId: "aws-${ARGOCD_ENV_CLUSTER}-${ARGOCD_ENV_ENVIRONMENT}"
+
+  # domainFilters: ["${ARGOCD_ENV_DOMAIN}"]
+
+  provider: aws
+
+  podLabels: 
+    cluster: ${ARGOCD_ENV_CLUSTER}
+    env: ${ARGOCD_ENV_ENVIRONMENT}
+    tier: infra
+    version: 6.5.4
+
+  resources: 
+    requests:
+      cpu: 10m
+      memory: 32Mi
+    limits:
+      cpu: 100m
+      memory: 128Mi
+
+  # Metrics from external-dns is not useful, disable to save space and load
+  metrics:
+    enabled: false
+    serviceMonitor:
+      enabled: false
+      namespace: prometheus-stack
+      interval: 1m
+      scrapeTimeout: 10s
+      labels: 
+        prometheus: ${ARGOCD_ENV_CLUSTER}
+      relabelings:
+        - sourceLabels: [__meta_kubernetes_pod_label_cluster]
+          action: replace
+          targetLabel: cluster
+        - sourceLabels: [__meta_kubernetes_pod_label_env]
+          action: replace
+          targetLabel: env
+        - sourceLabels: [__meta_kubernetes_pod_label_version]
+          action: replace
+          targetLabel: version

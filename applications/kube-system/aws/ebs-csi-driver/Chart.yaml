@@ -1,0 +1,33 @@
+apiVersion: v2
+name: aws-ebs-csi-driver
+description: A Helm chart for AWS EBS CSI Driver
+
+# This is the version number of the application being deployed. This version number should be
+# incremented each time you make changes to the application. Versions are not expected to
+# follow Semantic Versioning. They should reflect the version the application is using.
+appVersion: 3.1.0
+
+# This is the chart version. This version number should be incremented each time you make changes
+# to the chart and its templates, including the app version.
+# Versions are expected to follow Semantic Versioning (https://semver.org/)
+version: 2.17.1
+
+kubeVersion: ">=1.23.0-0"
+home: https://github.com/kubernetes-sigs/aws-ebs-csi-driver
+sources:
+  - https://github.com/kubernetes-sigs/aws-ebs-csi-driver
+keywords:
+  - aws
+  - ebs
+  - csi
+annotations:
+  artifacthub.io/changes: |
+    - kind: added
+      description: Custom controller.updateStrategy to set controller deployment strategy.
+
+type: application
+
+dependencies:
+- name: aws-ebs-csi-driver
+  version: 2.21.0
+  repository: https://kubernetes-sigs.github.io/aws-ebs-csi-driver

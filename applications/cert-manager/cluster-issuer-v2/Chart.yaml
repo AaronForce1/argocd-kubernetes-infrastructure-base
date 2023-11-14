@@ -1,0 +1,7 @@
+apiVersion: v2
+appVersion: v1.0.0
+description: Cluster Issuer
+maintainers:
+- name: marcuscheng
+name: cluster-issuer
+version: 1.0.0

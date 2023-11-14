@@ -1,0 +1,47 @@
+argocd:
+  namespace: cilium
+  releaseName: cilium
+
+cilium:
+  MTU: '65000'
+  cni:
+    chainingMode: aws-cni
+    exclusive: false
+  enableIPv4Masquerade: false
+  routingMode: native
+  endpointRoutes:
+    enabled: true
+  encryption:
+    enabled: true
+    type: wireguard
+    nodeEncryption: false
+  hubble:
+    relay:
+      enabled: true
+    tls:
+      auto:
+        enabled: true
+        method: helm
+        certValidityDuration: 1095
+    peerService:
+      clusterDomain: cluster.local
+    enabled: true
+    ui:
+      enabled: true
+    metrics:
+      enableOpenMetrics: true
+      serviceMonitor:
+        enabled: true
+      enabled:
+        - dns
+        - drop
+        - tcp
+        - icmp
+        - "httpV2:sourceContext=workload-name|pod-name|reserved-identity;destinationContext=workload-name|pod-name|reserved-identity;labelsContext=source_namespace,destination_namespace,traffic_direction"
+  prometheus:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+  operator:
+    prometheus:
+      enabled: true

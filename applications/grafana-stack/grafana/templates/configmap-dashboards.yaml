@@ -1,0 +1,26 @@
+{{- $namespace := .Release.Namespace -}}
+{{- $files := .Files.Glob "dashboards/**.json" }}
+{{- if $files }}
+apiVersion: v1
+kind: ConfigMapList
+items:
+{{- range $dashboardfolder := .Values.dashboardsToLoad }}
+{{- range $path, $fileContents := $files }}
+{{- if contains $dashboardfolder $path }}
+{{- $dashboardName := regexReplaceAll "(^.*/)(.*)\\.json$" $path "${2}" }}
+{{ $foldername := base (dir $path) }}
+- apiVersion: v1
+  kind: ConfigMap
+  metadata:
+    name: dashboard-{{ $dashboardName | trunc 63 | trimSuffix "-" }}
+    namespace: {{ $namespace }}
+    labels:
+      grafana_dashboard: "1"
+    annotations:
+      grafana_dashboard_folder: /tmp/dashboards/{{ $foldername }}
+  data:
+    {{ $dashboardName }}.json: {{ $.Files.Get $path | toJson }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- end }}

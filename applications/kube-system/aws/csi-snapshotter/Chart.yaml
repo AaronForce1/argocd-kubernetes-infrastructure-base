@@ -1,0 +1,8 @@
+apiVersion: v2
+name: csi-snapshotter
+description: CSI snapshotter provides a capability to take volume snapshot.
+type: application
+version: "0.0.1"
+appVersion: "0.0.1"
+sources:
+- https://github.com/kubernetes-csi/external-snapshotter

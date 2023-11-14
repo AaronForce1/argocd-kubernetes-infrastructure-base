@@ -1,0 +1,12 @@
+# templates/aws-node-template.yaml
+apiVersion: karpenter.k8s.aws/v1alpha1
+kind: AWSNodeTemplate
+metadata:
+  name: {{ .Values.awsNodeTemplate.name }}
+spec:
+  blockDeviceMappings:
+    {{- toYaml .Values.awsNodeTemplate.blockDeviceMappings | nindent 4 }}
+  subnetSelector:
+    {{- toYaml .Values.awsNodeTemplate.subnetSelector | nindent 4 }}
+  securityGroupSelector:
+    {{- toYaml .Values.awsNodeTemplate.securityGroupSelector | nindent 4 }}

@@ -1,0 +1,10 @@
+argocd:
+  namespace: csi-snapshotter
+  releaseName: csi-snapshotter
+
+volumeSnapshotClass:
+  name: "${ARGOCD_ENV_NAMESPACE}-${ARGOCD_ENV_ENVIRONMENT}-snapclass"
+  deletePolicy: "Delete"
+  labels: {}
+
+volumeSnapshots: []

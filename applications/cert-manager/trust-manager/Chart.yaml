@@ -1,0 +1,13 @@
+apiVersion: v2
+appVersion: v0.4.0
+dependencies:
+- name: trust-manager
+  version: v0.4.0
+  repository: https://charts.jetstack.io
+description: trust-manager is the easiest way to manage TLS trust bundles in Kubernetes and OpenShift clusters
+maintainers:
+- name: cert-manager-maintainers
+  email: cert-manager-maintainers@googlegroups.com
+  url: https://cert-manager.io
+name: trust-manager
+version: v0.4.0

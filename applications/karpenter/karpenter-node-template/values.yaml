@@ -1,0 +1,24 @@
+argocd:
+  namespace: karpenter
+  releaseName: karpenter-node-template
+
+awsNodeTemplate:
+  name: karpenter-node-template
+  blockDeviceMappings:
+    - deviceName: /dev/xvda
+      ebs:
+        volumeSize: 50Gi
+        volumeType: gp3
+        encrypted: true
+        deleteOnTermination: true
+    - deviceName: /dev/xvdb
+      ebs:
+        volumeSize: 50Gi
+        volumeType: gp3
+        encrypted: true
+        deleteOnTermination: true
+  subnetSelector:
+    SubnetType: private
+    kubernetes.io/cluster/${ARGOCD_ENV_EKS_CLUSTER_ID}: shared
+  securityGroupSelector:
+    Name: ${ARGOCD_ENV_EKS_CLUSTER_SG}

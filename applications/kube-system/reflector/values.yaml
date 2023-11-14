@@ -1,0 +1,67 @@
+argocd:
+  namespace: kube-system
+  releaseName: reflector
+
+reflector:
+  replicaCount: 1
+
+  image:
+    repository: emberstack/kubernetes-reflector
+    pullPolicy: IfNotPresent
+    # Overrides the image tag whose default is the chart appVersion.
+    tag: ""
+
+  imagePullSecrets: []
+  nameOverride: ""
+  fullnameOverride: ""
+
+  configuration:
+    logging:
+      minimumLevel: Information
+    watcher:
+      timeout: ""
+
+  rbac:
+    enabled: true
+
+  serviceAccount:
+    # Specifies whether a service account should be created
+    create: true
+    # Annotations to add to the service account
+    annotations: {}
+    # The name of the service account to use.
+    # If not set and create is true, a name is generated using the fullname template
+    name: ""
+
+  podAnnotations: {}
+
+  podSecurityContext:
+    fsGroup: 2000
+
+  securityContext:
+    capabilities:
+      drop:
+        - ALL
+    readOnlyRootFilesystem: false
+    runAsNonRoot: true
+    runAsUser: 1000
+
+  livenessProbe:
+    initialDelaySeconds: 5
+    periodSeconds: 10
+  readinessProbe:
+    initialDelaySeconds: 5
+    periodSeconds: 10
+  startupProbe:
+    # The application will have a maximum of 50s (10 * 5 = 50s) to finish its startup.
+    failureThreshold: 10
+    periodSeconds: 5
+
+
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 100
+    targetCPUUtilizationPercentage: 80
+    # targetMemoryUtilizationPercentage: 80
+

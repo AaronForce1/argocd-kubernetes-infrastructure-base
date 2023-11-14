@@ -1,0 +1,7 @@
+apiVersion: v2
+name: cilium
+dependencies:
+  - name: cilium
+    version: 1.14.2
+    repository: https://helm.cilium.io/
+version: 0.0.0

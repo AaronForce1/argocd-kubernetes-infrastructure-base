@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-alert-rules-generator-configmap
+  namespace: {{ .Release.Namespace }}
+data:
+  generate.sh: |-
+    #!/bin/sh
+
+    # This script is used to append additional annotations and labels to the alert rules
+    # Where the default global static label doesn't support 
+    
+    for r in $(ls $RULES_PATH); do
+        echo $RULES_PATH/$r
+        cat $RULES_PATH/$r | \
+        yq '.groups[].rules[].annotations += {
+            "app": "{{ `{{ $labels.app }}` }}"
+            }' | \
+        yq '.groups[].rules[].labels += {
+            "source":"loki",
+            "tags":"source:loki, namespace:{{ `{{ $labels.namespace }}` }}, cluster:{{ `{{ $labels.clusterName }}` }}"
+            }' > $GENERATED_RULES_PATH/$r
+    done

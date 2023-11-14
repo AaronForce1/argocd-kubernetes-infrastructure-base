@@ -1,0 +1,25 @@
+argocd:
+  namespace: karpenter
+  releaseName: karpenter
+
+karpenter:
+  controller:
+    env:
+      - name: AWS_ENI_LIMITED_POD_DENSITY
+        value: "false"
+  tolerations:
+    - key: "dedicated"
+      value: "karpenter-${ARGOCD_ENV_CLUSTER}-${ARGOCD_ENV_ENVIRONMENT}"
+      operator: "Equal"
+      effect: "NoSchedule"
+  serviceAccount:
+    create: true
+    name: "karpenter"
+    annotations:
+      eks.amazonaws.com/role-arn: arn:aws:iam::${ARGOCD_ENV_AWS_ACCOUNT}:role/karpenter-irsa-${ARGOCD_ENV_EKS_CLUSTER_ID}
+  replicas: 2
+  settings:
+    aws:
+      clusterName: ${ARGOCD_ENV_EKS_CLUSTER_ID}
+      interruptionQueueName: Karpenter-${ARGOCD_ENV_EKS_CLUSTER_ID}
+      defaultInstanceProfile: "karpenter-role-${ARGOCD_ENV_EKS_CLUSTER_ID}"

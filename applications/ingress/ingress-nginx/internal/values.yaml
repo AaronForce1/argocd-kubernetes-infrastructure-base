@@ -1,0 +1,36 @@
+argocd:
+  namespace: ingress
+  releaseName: ingress-nginx-internal
+
+ingress-nginx:
+  nameOverride: ingress-nginx-internal
+  fullnameOverride: ingress-nginx-internal
+
+  ingressClassResource:
+    name: nginx-internal
+    controllerValue: "k8s.io/ingress-nginx-internal"
+    # -- For backwards compatibility with ingress.class annotation, use ingressClass.
+    ingressClass: nginx-internal
+
+  service:
+    annotations:
+      service.beta.kubernetes.io/aws-load-balancer-name: ${ARGOCD_ENV_NAMESPACE}-${ARGOCD_ENV_ENVIRONMENT}-internal
+      service.beta.kubernetes.io/aws-load-balancer-internal: "true"
+      service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled: "true"
+      service.beta.kubernetes.io/aws-load-balancer-scheme: "internal"
+
+  metrics:
+    serviceMonitor:
+      relabelings:
+        - sourceLabels: [__meta_kubernetes_pod_label_cluster]
+          action: replace
+          targetLabel: cluster
+        - sourceLabels: [__meta_kubernetes_pod_label_project]
+          action: replace
+          targetLabel: project
+        - sourceLabels: [__meta_kubernetes_pod_label_env]
+          action: replace
+          targetLabel: env
+        - sourceLabels: [__meta_kubernetes_pod_label_internal]
+          action: replace
+          targetLabel: internal

@@ -1,0 +1,11 @@
+apiVersion: v2
+appVersion: v0.5.1
+version: 0.5.7
+name: external-secrets
+type: application
+description: External secret management for Kubernetes
+kubeVersion: '>= 1.11.0-0'
+dependencies:
+- name: external-secrets
+  version: 0.5.7
+  repository: https://charts.external-secrets.io

@@ -1,0 +1,7 @@
+apiVersion: v2
+name: karpenter
+dependencies:
+  - name: karpenter
+    version: v0.29.0
+    repository: oci://public.ecr.aws/karpenter
+version: 0.0.0

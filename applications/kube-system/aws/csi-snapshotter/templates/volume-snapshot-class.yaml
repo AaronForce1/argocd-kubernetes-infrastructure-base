@@ -1,0 +1,14 @@
+{{- if .Values.volumeSnapshotClass }}
+{{- $val := .Values.volumeSnapshotClass }}
+apiVersion: snapshot.storage.k8s.io/v1
+kind: VolumeSnapshotClass
+metadata:
+  name: {{ $val.name }}
+  labels:
+    name: {{ .Release.Name }}
+    {{- if $val.labels -}}
+    {{ toYaml $val.labels | nindent 4}}
+    {{- end }}
+driver: ebs.csi.aws.com
+deletionPolicy: {{ $val.deletePolicy }}
+{{- end }}

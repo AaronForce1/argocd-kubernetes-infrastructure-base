@@ -1,0 +1,45 @@
+# templates/provisioner.yaml
+{{- range $provisioner := .Values.provisioners }}
+apiVersion: karpenter.sh/v1alpha5
+kind: Provisioner
+metadata:
+  name: {{ $provisioner.name }}
+spec:
+  kubeletConfiguration:
+    {{- if .kubeletConfiguration.maxPods }}
+    maxPods: {{ .kubeletConfiguration.maxPods }}
+    {{- end }}
+    evictionHard:
+      memory.available: {{ .kubeletConfiguration.evictionHard }}
+  {{- if .consolidation }}
+  consolidation:
+    enabled:  {{ .consolidation.enabled }}
+  {{- end }}
+  {{- if .cilium }}
+  {{- if .cilium.enabled }}
+  startupTaints:
+    - key: node.cilium.io/agent-not-ready
+      value: "true"
+      effect: NoExecute
+  {{- end }}
+  {{- end }}
+  {{- if .ttlSecondsAfterEmpty }}
+  ttlSecondsAfterEmpty: {{ .ttlSecondsAfterEmpty }}
+  {{- end }}
+  taints:
+    {{- toYaml .taints | nindent 4 }}
+  labels:
+    {{- toYaml .labels | nindent 4 }}
+  {{- if .weight }}
+  weight: {{ .weight }}
+  {{- end }}
+  requirements:
+    {{- toYaml .requirements | nindent 4 }}
+  limits:
+    resources:
+      cpu: {{ .limits.resources.cpu | quote }}
+      memory: {{ .limits.resources.memory }}
+  providerRef:
+    name: {{ .providerRef.name }}
+---
+{{- end }}

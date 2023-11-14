@@ -1,0 +1,10 @@
+apiVersion: v2
+name: kube-toolkit
+description: Toolkit image to be used for troubleshooting and debugging infrasrtucture components.
+dependencies: 
+- name: generic-helm-chart
+  version: 0.3.5
+  repository: https://hextrust.github.io/generic-helm-chart/
+type: application
+version: 1.0.0
+appVersion: "1.0.0"

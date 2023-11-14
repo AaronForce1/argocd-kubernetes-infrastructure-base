@@ -1,0 +1,70 @@
+argocd:
+  namespace: kube-system
+  releaseName: metrics-server
+
+metrics-server:  
+  replicas: 2
+
+  image:
+    pullPolicy: IfNotPresent
+
+  serviceAccount:
+    # Specifies whether a service account should be created
+    create: true
+    # Annotations to add to the service account
+    annotations: {}
+    # The name of the service account to use.
+    # If not set and create is true, a name is generated using the fullname template
+    name: ""
+
+  rbac:
+    # Specifies whether RBAC resources should be created
+    create: true
+    pspEnabled: false
+
+  securityContext:
+    runAsUser: 100
+
+  priorityClassName: system-cluster-critical
+
+  defaultArgs:
+    - --cert-dir=/tmp
+    - --kubelet-preferred-address-types=InternalIP,ExternalIP,Hostname
+    - --kubelet-use-node-status-port
+    - --metric-resolution=15s
+
+  args: []
+
+  service:
+    type: ClusterIP
+    port: 443
+    annotations: {}
+    labels: {}
+    #  Add these labels to have metrics-server show up in `kubectl cluster-info`
+    #  kubernetes.io/cluster-service: "true"
+    #  kubernetes.io/name: "Metrics-server"
+
+  metrics:
+    enabled: false
+
+  serviceMonitor:
+    enabled: false
+    additionalLabels: {}
+    interval: 1m
+    scrapeTimeout: 10s
+
+  # resources: {}
+  resources: 
+    requests:
+      cpu: 100m
+      memory: 200Mi
+
+  extraVolumeMounts: []
+
+  extraVolumes: []
+
+  nodeSelector: {}
+
+  tolerations: []
+
+  affinity: {}

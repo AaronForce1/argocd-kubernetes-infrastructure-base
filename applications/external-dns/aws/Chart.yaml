@@ -1,0 +1,12 @@
+apiVersion: v2
+appVersion: 0.10.2
+version: 6.5.4
+description: ExternalDNS synchronizes exposed Kubernetes Services and Ingresses with DNS providers.
+name: external-dns
+sources:
+- https://github.com/kubernetes-sigs/external-dns/
+type: application
+dependencies:
+- name: external-dns
+  version: 6.12.2
+  repository: https://charts.bitnami.com/bitnami
