@@ -6,10 +6,6 @@ loki-distributed:
   fullnameOverride: loki
   nameOverride: loki
   kubeNamespace: grafana-stack
-  
-  global:
-    image:
-      registry: registry.tech.hextech.io
 
   loki:
     config: |
@@ -131,7 +127,6 @@ loki-distributed:
 
   gateway:
     image:
-      registry: registry.tech.hextech.io
       repository: nginxinc/nginx-unprivileged
       tag: "1.19-alpine"
       pullPolicy: IfNotPresent
