@@ -12,7 +12,7 @@ provisioners:
     # ttlSecondsAfterEmpty: 30
     consolidation:
       enabled: true
-    taints: []
+    # taints: []
     labels:
       Product: application-base
       Environment: ${ARGOCD_ENV_ENVIRONMENT}
