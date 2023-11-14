@@ -1,0 +1,22 @@
+{{- $files := .Files.Glob "alerts/**.yaml" }}
+{{- if $files }}
+{{- range $alertfolder := .Values.alertsToLoad }}
+{{- range $path, $fileContents := $files }}
+{{- if contains $alertfolder $path }}
+{{- $alertName :=  (base $path) | replace ".yaml" ""}}
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: prometheus-{{ $alertName }}
+  labels:
+    release: prometheus
+spec:
+  groups:
+    - name: {{ $alertName }}
+      rules:
+{{- tpl ($.Files.Get $path) $ | nindent 6 }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- end }}

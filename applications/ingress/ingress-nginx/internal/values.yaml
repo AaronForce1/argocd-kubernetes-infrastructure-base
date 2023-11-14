@@ -1,6 +1,7 @@
 argocd:
   namespace: ingress
   releaseName: ingress-nginx-internal
+  externalHelmChartPath: "../"
 
 ingress-nginx:
   nameOverride: ingress-nginx-internal

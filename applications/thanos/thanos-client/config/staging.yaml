@@ -1,0 +1,12 @@
+thanos:
+  query:
+    resources:
+      # limits:
+      #   memory: 250Mi
+      #   cpu: 50m
+      requests:
+        memory: 250Mi
+        cpu: 100m
+    stores: 
+      - thanos-sidecar.staging.gryfyn.hextech.io:443
+      - thanos-sidecar.staging.htx.hextrust.com:443

@@ -1,0 +1,162 @@
+argocd:
+  namespace: prometheus-stack
+  releaseName: prometheus
+  skipCRD: false
+  syncOptionReplace:
+    - prometheuses.monitoring.coreos.com
+
+commonLabels:
+  prometheus: ${ARGOCD_ENV_NAMESPACE}
+  project: ${ARGOCD_ENV_NAMESPACE}
+  cluster: ${ARGOCD_ENV_CLUSTER}
+  env: ${ARGOCD_ENV_ENVIRONMENT}
+  tier: infra
+
+kube-prometheus-stack:
+  nameOverride: prometheus
+  fullnameOverride: prometheus
+  namespaceOverride: prometheus-stack
+
+  commonLabels:
+    prometheus: ${ARGOCD_ENV_NAMESPACE}
+    project: ${ARGOCD_ENV_NAMESPACE}
+    cluster: ${ARGOCD_ENV_CLUSTER}
+    env: ${ARGOCD_ENV_ENVIRONMENT}
+    tier: infra
+  
+  defaultRules:
+    disabled:
+      PrometheusNotConnectedToAlertmanagers: true # thanos connects to AM instead of Prometheus
+
+    rules:
+      kubeScheduler: false
+      KubePodCrashLooping: false
+      KubePodNotReady: false
+      KubeControllerManagerDown: false
+      TargetDown: false
+      InfoInhibitor: false
+
+    additionalRuleLabels:
+      env: ${ARGOCD_ENV_ENVIRONMENT}
+      source: prometheus
+
+  kubeScheduler:
+    enabled: false
+    service:
+      enabled: false
+    serviceMonitor:
+      enabled: false
+  
+  kubeControllerManager:
+    enabled: false
+    service:
+      enabled: false
+    serviceMonitor:
+      enabled: false
+  
+  kubeProxy:
+    enabled: false
+    service:
+      enabled: false
+    serviceMonitor:
+      enabled: false
+  
+  alertmanager: 
+    enabled: false
+  
+  grafana: 
+    enabled: false
+  
+  kubeStateMetrics: 
+    enabled: false
+  
+  nodeExporter: 
+    enabled: false
+  
+  prometheusOperator:
+    enabled: true
+    kubeletService:
+      enabled: true 
+  
+  kubelet:
+    enabled: true
+
+  prometheus:
+    enabled: true
+    ingress: 
+      enabled: false      
+    serviceMonitor:
+      selfMonitor: true
+    prometheusSpec:
+
+      podMetadata:
+        labels:
+          cluster: ${ARGOCD_ENV_CLUSTER}
+          project: ${ARGOCD_ENV_NAMESPACE}
+          env: ${ARGOCD_ENV_ENVIRONMENT}
+          tier: infra
+          version: 35.5.1
+
+      storageSpec:
+        volumeClaimTemplate:
+          spec:
+            storageClassName: gp3-retain
+            accessModes: ["ReadWriteOnce"]
+            resources:
+              requests:
+                storage: 50Gi
+
+      serviceMonitorSelector:
+        matchLabels:
+          prometheus: ${ARGOCD_ENV_CLUSTER}
+      resources:
+        requests:
+          memory: 5000Mi
+          cpu: 1000m
+        limits:
+          memory: 5000Mi
+          cpu: 1000m
+
+      replicas: 2
+
+      thanos:
+        baseImage: quay.io/thanos/thanos
+        version: v0.32.5
+
+        objectStorageConfig:
+          name: thanos-objstore-config
+          key: thanos.yaml  
+   
+      externalLabels:
+        cluster: ${ARGOCD_ENV_CLUSTER}
+        stage: ${ARGOCD_ENV_ENVIRONMENT}
+
+      replicaExternalLabelName: ${ARGOCD_ENV_CLUSTER}
+      prometheusExternalLabelName: "cluster"
+
+    extraSecret:
+      name: thanos-objstore-config
+      data:
+        thanos.yaml: |
+          type: S3
+          config:
+            bucket: eks-${ARGOCD_ENV_NAMESPACE}-${ARGOCD_ENV_ENVIRONMENT}-thanos
+            endpoint: s3.${ARGOCD_ENV_AWS_REGION}.amazonaws.com
+            sse_config:
+              type: "SSE-KMS"
+              kms_key_id: "${ARGOCD_ENV_KMS_KEY_ID}"
+
+    serviceAccount:
+      name: "thanos-prometheus"
+      annotations:
+        eks.amazonaws.com/role-arn: arn:aws:iam::${ARGOCD_ENV_AWS_ACCOUNT}:role/eks/${ARGOCD_ENV_NAMESPACE}/${ARGOCD_ENV_ENVIRONMENT}/eks-${ARGOCD_ENV_NAMESPACE}-${ARGOCD_ENV_ENVIRONMENT}-s3-custom-role-eks-${ARGOCD_ENV_CLUSTER}-${ARGOCD_ENV_ENVIRONMENT}-thanos
+    thanosService:
+      enabled: true
+
+# alertsToLoad: {} # specify list of directories under alerts directory
+alertsToLoad: # only alets under these directories will be loaded into alert-manager 
+  - pod
+  - infrastructure
+grafanaDomain: ${ARGOCD_ENV_OPERATOR_DOMAIN}
+operatorCluster: "" # operator
+appCluster: "${ARGOCD_ENV_NAMESPACE}"

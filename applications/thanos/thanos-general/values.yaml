@@ -1,0 +1,150 @@
+argocd:
+  namespace: prometheus-stack
+  releaseName: thanos
+
+thanos:
+  nameOverride: thanos
+  fullnameOverride: thanos
+  kubeNamespace: prometheus-stack
+
+  objstoreConfig: |-
+    type: S3
+    config:
+      bucket: eks-${ARGOCD_ENV_NAMESPACE}-${ARGOCD_ENV_ENVIRONMENT}-thanos
+      endpoint: s3.${ARGOCD_ENV_AWS_REGION}.amazonaws.com
+      sse_config:
+        type: "SSE-KMS"
+        kms_key_id: "${ARGOCD_ENV_KMS_KEY_ID}"
+  
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+      additionalLabels: 
+        prometheus: ${ARGOCD_ENV_NAMESPACE}
+      relabelings:
+        - sourceLabels: [__meta_kubernetes_pod_label_cluster]
+          action: replace
+          targetLabel: cluster
+        - sourceLabels: [__meta_kubernetes_pod_label_project]
+          action: replace
+          targetLabel: project
+        - sourceLabels: [__meta_kubernetes_pod_label_env]
+          action: replace
+          targetLabel: env
+      scrapeTimeout: 1m
+
+  query:
+    resources:
+      limits:
+        memory: 2000Mi
+        cpu: 500m
+      requests:
+        memory: 250Mi
+        cpu: 500m
+    stores:
+      - dnssrv+_grpc._tcp.prometheus-operated.prometheus-stack.svc.cluster.local
+      - dnssrv+_grpc._tcp.thanos-client-query-grpc.prometheus-stack.svc.cluster.local
+    replicaLabel:
+      - replica
+      # - prometheus_replica
+    dnsDiscovery:
+      enabled: true
+      sidecarsService: prometheus-thanos-discovery
+      sidecarsNamespace: prometheus-stack
+    pdb:
+      create: true
+      minAvailable: 1
+    ingress:
+      enabled: true
+      hostname: thanos-query.${ARGOCD_ENV_DOMAIN}
+      ingressClassName: "nginx-internal"
+
+  queryFrontend:
+    resources:
+      limits:
+        memory: 200Mi
+        cpu: 200m
+      requests:
+        memory: 100Mi
+        cpu: 200m
+
+  bucketweb:
+    enabled: true
+    resources:
+      limits:
+        memory: 200Mi
+        cpu: 20m
+      requests:
+        memory: 100Mi
+        cpu: 10m
+    serviceAccount:
+      create: false
+      name: "thanos-prometheus"
+
+  compactor:
+    enabled: true
+    resources:
+      limits:
+        memory: 200Mi
+        cpu: 400m
+      requests:
+        memory: 100Mi
+        cpu: 400m
+    serviceAccount:
+      create: false
+      name: "thanos-prometheus"
+    persistence:
+      storageClass: "gp3-retain"
+      size: 100Gi
+
+  storegateway:
+    enabled: true
+    resources:
+      limits:
+        memory: 9000Mi
+        cpu: 200m
+      requests:
+        memory: 2000Mi
+        cpu: 200m
+    persistence:
+      enabled: false
+    serviceAccount:
+      create: false
+      name: "thanos-prometheus"
+
+  ruler:
+    enabled: true
+    serviceAccount:
+      create: false
+      name: "thanos-prometheus"
+    resources:
+      limits:
+        memory: 500Mi
+        cpu: 200m
+      requests:
+        memory: 500Mi
+        cpu: 100m
+    persistence: 
+      storageClass: "gp3-retain"
+      size: 8Gi
+    alertmanagers:
+      - http://alert-manager-alertmanager.prometheus-stack.svc.cluster.local:9093
+    existingConfigmap: "prometheus-prometheus-prometheus-rulefiles-0"
+    args:
+      - rule
+      - '--log.level=info'
+      - '--log.format=logfmt'
+      - '--grpc-address=0.0.0.0:10901'
+      - '--http-address=0.0.0.0:10902'
+      - '--data-dir=/data'
+      - '--eval-interval=1m'
+      - >-
+        --alertmanagers.url=http://alert-manager-alertmanager.prometheus-stack.svc.cluster.local:9093
+      - >-
+        --query=dnssrv+_http._tcp.thanos-query.prometheus-stack.svc.cluster.local
+      - '--label=replica="$(POD_NAME)"'
+  # - '--label=ruler_cluster=""'
+      - '--alert.label-drop=replica'
+      - '--objstore.config-file=/conf/objstore/objstore.yml'
+      - '--rule-file=/conf/rules/*.yaml'

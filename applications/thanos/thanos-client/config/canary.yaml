@@ -1,0 +1,11 @@
+thanos:
+  query:
+    resources:
+      # limits:
+      #   memory: 250Mi
+      #   cpu: 100m
+      requests:
+        memory: 250Mi
+        cpu: 100m
+    stores: 
+      - thanos-sidecar.canary.metazens.xyz:443

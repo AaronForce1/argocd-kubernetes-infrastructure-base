@@ -1,0 +1,13 @@
+- alert: ServiceEndpointsNotHealthy
+  annotations:
+    description: 'Some service endpoint(s) are not healthy.'
+    summary: Some service endpoint(s) are not healthy
+    url: https://grafana.{{ .Values.grafanaDomain }}/d/9Nqlzfz4z/infrastructure-overview?orgId=1&refresh=1m
+  expr: (count by (target)(probe_success == 0)) == 1
+  for: 3m
+  labels:
+    severity: critical
+    alerts: common
+    prometheus: infra
+    source: prometheus
+    env: {{ .Values.environment }}

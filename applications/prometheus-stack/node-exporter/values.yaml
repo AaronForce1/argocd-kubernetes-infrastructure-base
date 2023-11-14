@@ -1,0 +1,43 @@
+argocd:
+  namespace: prometheus-stack
+  releaseName: node-exporter
+  
+prometheus-node-exporter:
+  fullnameOverride: node-exporter
+  kubeNamespace: prometheus-stack
+
+  podLabels:
+    cluster: ${ARGOCD_ENV_CLUSTER}
+    project: ${ARGOCD_ENV_NAMESPACE}
+    env: ${ARGOCD_ENV_ENVIRONMENT}
+    tier: infra
+    version: 4.23.2
+  
+  prometheus:
+    monitor:
+      enabled: true
+      additionalLabels: 
+          prometheus: ${ARGOCD_ENV_NAMESPACE}
+      relabelings:
+        - sourceLabels: [__meta_kubernetes_pod_label_cluster]
+          action: replace
+          targetLabel: cluster
+        - sourceLabels: [__meta_kubernetes_pod_label_project]
+          action: replace
+          targetLabel: project
+        - sourceLabels: [__meta_kubernetes_pod_label_env]
+          action: replace
+          targetLabel: env
+
+  resources:
+    limits:
+      cpu: 200m
+      memory: 50Mi
+    requests:
+      cpu: 50m
+      memory: 50Mi
+
+  rbac:
+    create: true
+    pspEnabled: false
+

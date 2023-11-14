@@ -1,0 +1,111 @@
+argocd:
+  namespace: prometheus-stack
+  releaseName: alert-manager
+  skipCRD: true
+
+kube-prometheus-stack:
+  nameOverride: alert-manager
+  fullnameOverride: alert-manager
+  kubeNamespace: prometheus-stack
+  commonLabels: 
+    prometheus: ${ARGOCD_ENV_CLUSTER}
+  defaultRules:
+    create: false
+  alertmanager: 
+    config:
+      global:
+        resolve_timeout: 35m
+        # update this
+        slack_api_url: ${ARGOCD_ENV_SLACK_WEBHOOK_URL}
+      route:
+        group_by: ['job']
+        group_wait: 30s
+        group_interval: 5m
+        repeat_interval: 6h
+        routes:
+        - match:
+            alerts: common
+          receiver: 'slack'
+          continue: true
+      receivers:
+      - name: 'slack'
+        slack_configs:
+        - channel: '#prometheus-alerts'
+          send_resolved: true
+          color: '{{ template "SLACK_MSG_COLOR" . }}'
+          title: '[{{ .Status | toUpper }}{{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }}{{ end }}] Monitoring Event Notification'
+          text: >-
+            {{ range .Alerts }}
+              *Alert:* {{ .Annotations.summary }} - `{{ .Labels.severity }}`
+              *Description:* {{ .Annotations.description }}
+              *Details:*
+              {{ range .Labels.SortedPairs }} • *{{ .Name }}:* `{{ .Value }}`
+              {{ end }}
+            {{ end }}
+    templateFiles:
+      template_1.tmpl: |-
+          {{ define "SLACK_MSG_TITLE" }}
+          {{ if eq (index .Alerts 0).Labels.severity "warning" }}
+              :warning:[{{ (index .Alerts 0).Labels.severity | toUpper }}] {{ (index .Alerts 0).Annotations.summary }}
+          {{ else if eq (index .Alerts 0).Labels.severity "info" }}
+              :spiral_note_pad:[{{ (index .Alerts 0).Labels.severity | toUpper }}] {{ (index .Alerts 0).Annotations.summary }}
+          {{ else if eq (index .Alerts 0).Labels.severity "none" }}
+              :heavy_check_mark:[{{ (index .Alerts 0).Labels.severity | toUpper }}] {{ (index .Alerts 0).Annotations.summary }}
+          {{ else if eq (index .Alerts 0).Labels.severity "critical" }}
+              :exclamation:[{{ (index .Alerts 0).Labels.severity | toUpper }}] {{ (index .Alerts 0).Annotations.summary }}
+          {{ else }}
+              :thought_balloon:[{{ (index .Alerts 0).Labels.severity | toUpper }}] {{ (index .Alerts 0).Annotations.summary }}
+          {{ end }}
+          {{ end }}
+
+          {{ define "SLACK_MSG_COLOR" }}
+          {{ if eq .Status "firing" }}
+          {{ if eq (index .Alerts 0).Labels.severity "critical" }}
+              danger
+          {{ else if eq (index .Alerts 0).Labels.severity "error" }}
+              danger
+          {{ else if eq (index .Alerts 0).Labels.severity "warning" }}
+              warning
+          {{ else }}
+              #439FE0
+          {{ end }}
+          {{ else}}good{{ end }}{{ end }}
+    enabled: true
+    ingress:
+      enabled: true
+      ingressClassName: nginx-internal
+      hosts:
+        - alert-manager.${ARGOCD_ENV_DOMAIN}
+    
+    alertmanagerSpec:
+      # this secret is created by templates/externalsecret.yaml
+      # alert manager then mount this secret to /etc/alertmanager/secrets
+      secrets: 
+        - alertmanager-secrets
+      storage:
+        volumeClaimTemplate:
+          spec:
+            storageClassName: gp3-retain
+            accessModes: ["ReadWriteOnce"]
+            resources:
+              requests:
+                storage: 50Gi
+      resources:
+        requests:
+          memory: 400Mi
+          cpu: 100m
+        limits:
+          memory: 400Mi
+          cpu: 100m
+  grafana: 
+    enabled: false
+  kubeStateMetrics: 
+    enabled: false
+  nodeExporter: 
+    enabled: false
+  prometheusOperator:
+    enabled: false
+    kubeletService:
+      enabled: false
+  prometheus:
+    enabled: false

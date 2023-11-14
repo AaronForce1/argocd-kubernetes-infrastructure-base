@@ -1,0 +1,13 @@
+- alert: PodCrashLooping
+  annotations:
+    description: 'Pod is in waiting state (reason: "CrashLoopBackOff")'
+    summary: Pod is crash looping.
+    url: https://grafana.{{ .Values.grafanaDomain }}/explore?orgId=1&left=%7B"datasource":"P1809F7CD0C75ACF3","queries":%5B%7B"refId":"A","editorMode":"code","expr":"kube_pod_container_status_waiting_reason%7Bjob%3D%5C"kube-state-metrics%5C",namespace%3D~%5C".%2A%5C",reason%3D%5C"CrashLoopBackOff%5C"%7D","legendFormat":"__auto","range":true,"instant":true%7D%5D,"range":%7B"from":"now-1h","to":"now"%7D%7D
+  expr: max_over_time(kube_pod_container_status_waiting_reason{job="kube-state-metrics",namespace=~".*",reason="CrashLoopBackOff"}[1m]) >= 1
+  # for: 15m
+  labels:
+    severity: error
+    alerts: common
+    pods: notReady
+    source: prometheus
+    env: {{ .Values.environment }}

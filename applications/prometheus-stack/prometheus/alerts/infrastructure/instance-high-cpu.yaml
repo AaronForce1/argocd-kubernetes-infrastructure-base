@@ -1,0 +1,12 @@
+- alert: InstanceHighCpuLoad
+  expr: 100 - (avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+  for: 10m
+  labels:
+    severity: critical
+    alerts: common
+    source: prometheus
+    env: {{ .Values.environment }}
+  annotations:
+    summary: Instance high CPU load
+    description: "CPU load is > 80%"
+    url: https://grafana.${ARGOCD_ENV_DOMAIN}/explore?orgId=1&left=%7B%22datasource%22:%22P1809F7CD0C75ACF3%22,%22queries%22:%5B%7B%22refId%22:%22A%22,%22datasource%22:%7B%22type%22:%22prometheus%22,%22uid%22:%22P1809F7CD0C75ACF3%22%7D,%22editorMode%22:%22code%22,%22expr%22:%22100%20-%20%28avg%20by%20%28instance%29%20%28rate%28node_cpu_seconds_total%7Bmode%3D%5C%22idle%5C%22%7D%5B5m%5D%29%29%20%2A%20100%29%20%3E%2080%22,%22legendFormat%22:%22__auto%22,%22range%22:true,%22instant%22:true%7D%5D,%22range%22:%7B%22from%22:%22now-5m%22,%22to%22:%22now%22%7D%7D

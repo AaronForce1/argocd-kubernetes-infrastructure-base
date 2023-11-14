@@ -1,0 +1,13 @@
+- alert: PodRestarted5times
+  annotations:
+    description: 'Pod restarted for 5 times within 15 mins.'
+    summary: Pod is not ready
+    url: https://grafana.{{ .Values.grafanaDomain }}/explore?orgId=1&left=%7B"datasource":"P1809F7CD0C75ACF3","queries":%5B%7B"refId":"A","editorMode":"code","expr":"%28sum%20by%20%28cluster,%20container%29%28increase%28kube_pod_container_status_restarts_total%5B15m%5D%29%29%29","legendFormat":"__auto","range":true,"instant":true%7D%5D,"range":%7B"from":"now-1h","to":"now"%7D%7D
+  expr: (sum by (cluster, container)(increase(kube_pod_container_status_restarts_total[15m]))) > 5
+  for: 15m
+  labels:
+    severity: error
+    alerts: common
+    pods: notReady
+    source: prometheus
+    env: {{ .Values.environment }}

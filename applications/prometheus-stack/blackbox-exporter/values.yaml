@@ -1,0 +1,37 @@
+argocd:
+  namespace: prometheus-stack
+  releaseName: blackbox-exporter
+
+prometheus-blackbox-exporter:
+  nameOverride: blackbox-exporter
+  fullNameOverride: blackbox-exporter
+  kubeNamespace: prometheus-stack
+
+  podAnnotations:
+    cluster: ${ARGOCD_ENV_CLUSTER}
+    env: ${ARGOCD_ENV_ENVIRONMENT}
+    tier: infra
+
+  config:
+    modules:
+      http_2xx:
+        prober: http
+        timeout: 5s
+        http:
+          valid_http_versions: ["HTTP/1.1", "HTTP/2.0"]
+          follow_redirects: true
+          preferred_ip_protocol: "ip4"
+      tcp_connect:
+        prober: tcp
+
+# Custom template
+serviceMonitor:
+  enabled: false
+  defaults:
+    additionalMetricsRelabels: {}
+    additionalRelabeling: []
+    interval: 30s
+    scrapeTimeout: 30s
+    module: http_2xx
+    labels:
+      prometheus: ${ARGOCD_ENV_NAMESPACE}

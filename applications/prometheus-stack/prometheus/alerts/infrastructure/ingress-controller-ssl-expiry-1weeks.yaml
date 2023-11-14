@@ -1,0 +1,13 @@
+- alert: NginxIngressControllerSslExpiry1Week
+  annotations:
+    description: 'Nginx IngressController SSL Expiring in 1 week'
+    summary: Nginx IngressController SSL Expiry Reminder
+    url: https://grafana.{{ .Values.grafanaDomain }}/explore?orgId=1&left=%7B"datasource":"P1809F7CD0C75ACF3","queries":%5B%7B"refId":"A","editorMode":"code","expr":"avg%28nginx_ingress_controller_ssl_expire_time_seconds%29%20by%20%28host%29%20-%20time%28%29","legendFormat":"__auto","range":true,"instant":true%7D%5D,"range":%7B"from":"now-15m","to":"now"%7D%7D
+  expr: avg(nginx_ingress_controller_ssl_expire_time_seconds) by (host) - time() < 604800 and avg(nginx_ingress_controller_ssl_expire_time_seconds) by (host) - time() > 604800
+  for: 24h
+  labels:
+    severity: warning
+    alerts: common
+    prometheus: infra
+    source: prometheus
+    env: {{ .Values.environment }}

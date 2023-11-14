@@ -1,0 +1,45 @@
+argocd:
+  namespace: prometheus-stack
+  releaseName: thanos-client
+
+thanos:
+  nameOverride: thanos-client
+  fullnameOverride: thanos-client
+  kubeNamespace: prometheus-stack
+
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+      additionalLabels: 
+        prometheus: ${ARGOCD_ENV_NAMESPACE}
+      relabelings:
+        - sourceLabels: [__meta_kubernetes_pod_label_cluster]
+          action: replace
+          targetLabel: cluster
+        - sourceLabels: [__meta_kubernetes_pod_label_project]
+          action: replace
+          targetLabel: project
+        - sourceLabels: [__meta_kubernetes_pod_label_env]
+          action: replace
+          targetLabel: env
+
+  query:
+    extraFlags:
+      - --query.timeout=5m
+      - --query.lookback-delta=15m
+      - "--grpc-client-tls-secure"
+    enabled: true
+    dnsDiscovery:
+      enabled: false
+    pdb:
+      create: true
+      minAvailable: 1
+    stores: 
+      - thanos-sidecar.${ARGOCD_ENV_OPERATOR_DOMAIN}:443
+  queryFrontend:
+    enabled: false
+  compactor:
+    enabled: false
+  storegateway:
+    enabled: false

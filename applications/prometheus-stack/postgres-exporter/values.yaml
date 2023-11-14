@@ -1,0 +1,38 @@
+argocd:
+  namespace: prometheus-stack
+  releaseName: "postgres-exporter"
+
+prometheus-postgres-exporter:
+  nameOverride: "postgres-exporter"
+  fullNameOverride: "postgres-exporter"
+  kubeNamespace: prometheus-stack
+
+  podLabels:
+    cluster: ${ARGOCD_ENV_CLUSTER}
+    project: ${ARGOCD_ENV_NAMESPACE}
+    env: ${ARGOCD_ENV_ENVIRONMENT}
+    tier: infra
+
+  config:
+    datasourceSecret:
+    # Specifies if datasource should be sourced from secret value in format: postgresql://login:password@hostname:port/dbname?sslmode=disable
+    # Multiple Postgres databases can be configured by comma separated postgres connection strings
+    # Secret name
+      name: postgres-exporter-secret
+    # Connection string key inside secret
+      key: datasource
+
+  serviceMonitor:
+    enabled: true
+    labels:
+      prometheus: ${ARGOCD_ENV_NAMESPACE}
+    relabelings:
+      - sourceLabels: [__meta_kubernetes_pod_label_cluster]
+        action: replace
+        targetLabel: cluster
+      - sourceLabels: [__meta_kubernetes_pod_label_project]
+        action: replace
+        targetLabel: project
+      - sourceLabels: [__meta_kubernetes_pod_label_env]
+        action: replace
+        targetLabel: env
