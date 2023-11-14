@@ -63,7 +63,7 @@ grafana:
 
   ingress:
     enabled: true
-    ingressClassName: nginx
+    ingressClassName: nginx-internal
     annotations: 
       cert-manager.io/cluster-issuer: letsencrypt-http01
       nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
