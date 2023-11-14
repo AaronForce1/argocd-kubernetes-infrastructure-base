@@ -9,7 +9,7 @@ provisioners:
   - name: app-provisioner
     kubeletConfiguration:
       evictionHard: 10%
-    ttlSecondsAfterEmpty: 30
+    # ttlSecondsAfterEmpty: 30
     consolidation:
       enabled: true
     taints: []
