@@ -1,7 +1,9 @@
 argocd:
   namespace: ingress
   releaseName: ingress-nginx-internal
-  externalHelmChartPath: "../"
+  valueFiles: 
+    - "../values.yaml"
+    - "./values.yaml" 
 
 ingress-nginx:
   nameOverride: ingress-nginx-internal

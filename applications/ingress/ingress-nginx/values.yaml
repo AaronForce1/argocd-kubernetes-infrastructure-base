@@ -11,7 +11,7 @@ ingress-nginx:
     cluster: ${ARGOCD_ENV_CLUSTER}
     env: ${ARGOCD_ENV_ENVIRONMENT}
     tier: infra
-    version: 4.3.0
+    version: 4.8.3
     internal: "true"
 
   controller:
@@ -41,7 +41,7 @@ ingress-nginx:
       project: ${ARGOCD_ENV_NAMESPACE}
       env: ${ARGOCD_ENV_ENVIRONMENT}
       tier: infra
-      version: 4.3.0
+      version: 4.8.3
 
     config:
       use-forwarded-headers: "true"
