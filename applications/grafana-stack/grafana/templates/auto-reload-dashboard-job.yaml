@@ -24,14 +24,16 @@ spec:
             http://grafana.grafana-stack.svc.cluster.local:80/api/admin/provisioning/dashboards/reload
         env:
         - name: username
-          valueFrom:
-            secretKeyRef:
-              name: grafana-external-secrets
-              key: admin-username
+          value: admin
+          # valueFrom:
+          #   secretKeyRef:
+          #     name: grafana-external-secrets
+          #     key: admin-username
         - name: password
-          valueFrom:
-            secretKeyRef:
-              name: grafana-external-secrets
-              key: admin-password
+          value: admin
+          # valueFrom:
+          #   secretKeyRef:
+          #     name: grafana-external-secrets
+          #     key: admin-password
       restartPolicy: Never
   backoffLimit: 1
