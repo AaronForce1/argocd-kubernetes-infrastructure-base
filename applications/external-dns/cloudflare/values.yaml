@@ -159,7 +159,7 @@ external-dns:
     secretName: "cloudflare-external-dns-secret"
     ## @param cloudflare.email When using the Cloudflare provider, `CF_API_EMAIL` to set (optional). Needed when using CF_API_KEY
     ##
-    email: ""
+    email: "${ARGOCD_ENV_TECH_EMAIL}"
     ## @param cloudflare.proxied When using the Cloudflare provider, enable the proxy feature (DDOS protection, CDN...) (optional)
     ##
     proxied: true
