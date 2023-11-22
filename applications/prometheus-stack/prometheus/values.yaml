@@ -149,7 +149,7 @@ kube-prometheus-stack:
     serviceAccount:
       name: "thanos-prometheus"
       annotations:
-        eks.amazonaws.com/role-arn: arn:aws:iam::${ARGOCD_ENV_AWS_ACCOUNT}:role/eks/${ARGOCD_ENV_NAMESPACE}/${ARGOCD_ENV_ENVIRONMENT}/eks-${ARGOCD_ENV_NAMESPACE}-${ARGOCD_ENV_ENVIRONMENT}-s3-custom-role-eks-${ARGOCD_ENV_CLUSTER}-${ARGOCD_ENV_ENVIRONMENT}-thanos
+        eks.amazonaws.com/role-arn: arn:aws:iam::${ARGOCD_ENV_AWS_ACCOUNT}:role/eks/${ARGOCD_ENV_NAMESPACE}/${ARGOCD_ENV_ENVIRONMENT}/eks-${ARGOCD_ENV_NAMESPACE}-${ARGOCD_ENV_ENVIRONMENT}-s3-custom-role-thanos
     thanosService:
       enabled: true
 
