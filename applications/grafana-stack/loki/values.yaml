@@ -112,7 +112,7 @@ loki-distributed:
 
     storageConfig:
       aws: 
-        s3: eks-${ARGOCD_ENV_CLUSTER}-${ARGOCD_ENV_ENVIRONMENT}-eks-loki
+        s3: eks-${ARGOCD_ENV_CLUSTER}-${ARGOCD_ENV_ENVIRONMENT}-loki
         region: ap-southeast-1
         http_config: 
           response_header_timeout: 600s
