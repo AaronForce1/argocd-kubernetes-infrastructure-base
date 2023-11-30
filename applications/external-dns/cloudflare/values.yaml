@@ -162,7 +162,8 @@ external-dns:
     email: "${ARGOCD_ENV_TECH_EMAIL}"
     ## @param cloudflare.proxied When using the Cloudflare provider, enable the proxy feature (DDOS protection, CDN...) (optional)
     ##
-    proxied: true
+    ## TODO: This is not working, need to investigate
+    proxied: false
 
   ## @param domainFilters Limit possible target zones by domain suffixes (optional)
   ##
