@@ -17,6 +17,8 @@ ingress-nginx:
   controller:
     replicaCount: 1
 
+    allowSnippetAnnotations: true
+
     # resources:
     #   limits:
     #     cpu: 200m
