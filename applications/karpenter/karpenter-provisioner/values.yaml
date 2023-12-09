@@ -57,6 +57,9 @@ provisioners:
         operator: Gt
         values:
           - '2'
+      - key: karpenter.k8s.aws/instance-size
+        operator: NotIn
+        values: ["nano", "micro", "small", "medium"]
     limits:
       resources:
         cpu: 24
