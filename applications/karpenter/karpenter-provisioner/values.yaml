@@ -59,7 +59,7 @@ provisioners:
           - '2'
     limits:
       resources:
-        cpu: 10
-        memory: 32Gi
+        cpu: 24
+        memory: 128Gi
     providerRef:
       name: karpenter-node-template
