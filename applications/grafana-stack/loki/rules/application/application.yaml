@@ -2,6 +2,6 @@ groups:
   - name: {{ defaultGroupName }}
     rules:
       - alert: application error
-        expr: 'count_over_time({namespace="${ARGOCD_ENV_APP_NAMESPACES}",level="error"} | pattern `<message>` [1m])'
+        expr: 'count_over_time({namespace="ithaca-canary",level="error"} | pattern `<message>` [1m])'
         labels:
           severity: info
