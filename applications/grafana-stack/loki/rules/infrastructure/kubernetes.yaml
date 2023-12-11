@@ -1,0 +1,11 @@
+groups:
+  - name: "{{ defaultGroupName }}"
+    rules:
+      - alert: Infrastructure log error (json)
+        expr: 'count_over_time({namespace=~"default|external-secrets|argocd"} | json | pattern `<message>` | level="error"[10m])'
+        labels:
+          severity: info
+      - alert: Infrastructure log error (fmtlog)
+        expr: 'count_over_time({namespace=~"external-dns"} | logfmt | pattern `<message>` | level="error"[10m])'
+        labels:
+          severity: info
