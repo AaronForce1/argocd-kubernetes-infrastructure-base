@@ -115,7 +115,7 @@ grafana:
       scopes: https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email
       auth_url: https://accounts.google.com/o/oauth2/auth
       token_url: https://accounts.google.com/o/oauth2/token
-      allowed_domains: hextech.io hextrust.com
+      allowed_domains: ${ARGOCD_ENV_AUTH_DOMAINS}
       allow_sign_up: true
     server:
       root_url: https://grafana.${ARGOCD_ENV_DOMAIN}
