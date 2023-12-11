@@ -140,11 +140,11 @@ loki-distributed:
       targetMemoryUtilizationPercentage: 80
     resources:
       requests:
-        memory: 128Mi
-        cpu: 50m
-      limits:
         memory: 256Mi
         cpu: 100m
+      limits:
+        memory: 512Mi
+        cpu: 500m
     ingress: 
       enabled: true
       ingressClassName: nginx-internal
@@ -252,20 +252,20 @@ loki-distributed:
     maxUnavailable: 1
 
   querier:
-    replicas: 2
+    replicas: 3
     autoscaling:
       enabled: true
-      minReplicas: 2
+      minReplicas: 3
       maxReplicas: 8
       targetCPUUtilizationPercentage: 60
       targetMemoryUtilizationPercentage: 60
     resources:
       requests:
-        memory: 1Gi
-        cpu: "1.5"
-      limits:
         memory: 4Gi
         cpu: "2"
+      limits:
+        memory: 8Gi
+        cpu: "4"
     maxUnavailable: 1
   
   queryFrontend:
@@ -278,11 +278,11 @@ loki-distributed:
       targetMemoryUtilizationPercentage: 60
     resources:
       requests:
-        memory: 1Gi
-        cpu: "1"
-      limits:
         memory: 2Gi
-        cpu: "1.5"
+        cpu: "2"
+      limits:
+        memory: 4Gi
+        cpu: "4"
     maxUnavailable: 1
 
   compactor:
