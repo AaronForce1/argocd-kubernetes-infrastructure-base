@@ -1,0 +1,78 @@
+argocd:
+  namespace: ingress
+  releaseName: ingress-nginx  
+
+ingress-nginx:
+  nameOverride: ingress-nginx
+  fullnameOverride: ingress-nginx
+  kubeNamespace: ingress
+
+  commonLabels:
+    cluster: ${ARGOCD_ENV_CLUSTER}
+    env: ${ARGOCD_ENV_ENVIRONMENT}
+    tier: infra
+    version: 4.8.3
+    internal: "true"
+
+  controller:
+    replicaCount: 1
+
+    allowSnippetAnnotations: true
+
+    # resources:
+    #   limits:
+    #     cpu: 200m
+    #     memory: 512Mi
+    #   requests:
+    #     cpu: 100m
+    #     memory: 256Mi
+
+    autoscaling:
+      enabled: true
+      minReplicas: 1
+      maxReplicas: 3
+      targetCPUUtilizationPercentage: 70
+      targetMemoryUtilizationPercentage: 70
+
+    configAnnotations:
+      nginx.ingress.kubernetes.io/ssl-redirect: "true"
+      nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+
+    podLabels:
+      cluster: ${ARGOCD_ENV_CLUSTER}
+      project: ${ARGOCD_ENV_NAMESPACE}
+      env: ${ARGOCD_ENV_ENVIRONMENT}
+      tier: infra
+      version: 4.8.3
+
+    config:
+      use-forwarded-headers: "true"
+      compute-full-forwarded-for: "true"
+      use-proxy-protocol: "true"
+      limit-req-status-code: 429
+
+    service: {}
+      # type: ClusterIP
+      # annotations:
+      #   cloud.google.com/neg: '{"exposed_ports": {"80":{"name": "ingress-nginx-80-neg-http"}}}'
+    
+    extraArgs:
+      ## We use wildcard tls cert for all endpoints of nginx ingress to avoid hitting letsencrypt rate limit
+      default-ssl-certificate: "ingress/${ARGOCD_ENV_DOMAIN}-wildcard-tls-secret" 
+    
+    metrics:
+      enabled: true
+      serviceMonitor:
+        enabled: true
+        additionalLabels: 
+          prometheus: ${ARGOCD_ENV_CLUSTER}
+        relabelings:
+          - sourceLabels: [__meta_kubernetes_pod_label_cluster]
+            action: replace
+            targetLabel: cluster
+          - sourceLabels: [__meta_kubernetes_pod_label_project]
+            action: replace
+            targetLabel: project
+          - sourceLabels: [__meta_kubernetes_pod_label_env]
+            action: replace
+            targetLabel: env
