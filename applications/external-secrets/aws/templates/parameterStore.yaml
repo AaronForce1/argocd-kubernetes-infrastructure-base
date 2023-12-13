@@ -1,0 +1,21 @@
+{{ if .Values.clusterSecretStore.parameterStore.enabled }}
+apiVersion: external-secrets.io/v1beta1
+kind: ClusterSecretStore
+metadata:
+  {{ if .Values.clusterSecretStore.parameterStore.nameSuffix }}
+  name: aws-parameterstore-{{ .Values.clusterSecretStore.parameterStore.nameSuffix }}
+  {{ else }}
+  name: aws-parameterstore
+  {{ end }}
+  namespace: external-secrets
+spec:
+  provider:
+    aws:
+      service: ParameterStore
+      region: {{ .Values.clusterSecretStore.parameterStore.region }}
+      auth:
+        jwt:
+          serviceAccountRef:
+            name: external-secrets
+            namespace: external-secrets
+{{ end }}
