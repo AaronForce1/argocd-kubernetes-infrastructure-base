@@ -15,7 +15,7 @@ data:
 
 {{- range $path, $content := .Files.Glob "rules/**.yaml" }}
 {{- $ruleFolder := regexReplaceAll "(^.*)\\/(.*)\\/(.*).yaml$" $path "${2}" }}
-{{- range $toLoadRulefolder := $global.Values.alertRules.fileToLoad }}
+{{- range $toLoadRulefolder := $global.Values.alertRules.ruleFoldersToLoad }}
 
 {{- if eq $ruleFolder $toLoadRulefolder }}
   {{ $path | replace "/" "-" }}: |-
