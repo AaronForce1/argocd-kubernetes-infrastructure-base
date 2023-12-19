@@ -1,5 +1,6 @@
 {{- $namespace := .Release.Namespace -}}
 {{- $global := . }}
+{{- if .Values.rulesToLoad }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -23,6 +24,7 @@ data:
   {{- $defaultGroupName := regexReplaceAll "(^.*)\\/((.*)\\/(.*)).yaml$" $path "${2}" }}
   {{- $ruleContent | replace "{{ defaultGroupName }}" $defaultGroupName | nindent 4 }}
 
+{{- end }}
 {{- end }}
 {{- end }}
 {{- end }}

@@ -5,3 +5,15 @@ groups:
         expr: 'count_over_time({namespace="ithaca-canary",level="error"} | pattern `<message>` [1m])'
         labels:
           severity: info
+      - alert: application error
+        expr: 'count_over_time({namespace="ithaca-uat",level="error"} | pattern `<message>` [1m])'
+        labels:
+          severity: info
+      - alert: application error
+        expr: 'count_over_time({namespace="ithaca-staging",level="error"} | pattern `<message>` [1m])'
+        labels:
+          severity: info
+      - alert: application error
+        expr: 'count_over_time({namespace="ithaca-production",level="error"} | pattern `<message>` [1m])'
+        labels:
+          severity: info

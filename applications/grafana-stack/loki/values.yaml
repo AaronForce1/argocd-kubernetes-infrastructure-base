@@ -288,5 +288,6 @@ loki-distributed:
   compactor:
     enabled: true
 
-# rulesToLoad:
-#   - infrastructure
+rulesToLoad:
+  - infrastructure
+  - application
