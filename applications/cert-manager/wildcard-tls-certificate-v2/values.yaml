@@ -12,5 +12,5 @@ certificates:
     secretTemplate:
       annotations:
         reflector.v1.k8s.emberstack.com/reflection-allowed: "true"  
-        reflector.v1.k8s.emberstack.com/reflection-allowed-namespaces: "${ARGOCD_ENV_CLUSTER}-${ARGOCD_ENV_ENVIRONMENT}, ithaca-canary, ingress, argocd, grafana-stack, prometheus-stack"  # Control destination namespaces
+        reflector.v1.k8s.emberstack.com/reflection-allowed-namespaces: "${ARGOCD_ENV_CLUSTER}-${ARGOCD_ENV_ENVIRONMENT}, ithaca-canary, ithaca-uat, ithaca-staging, ingress, argocd, grafana-stack, prometheus-stack"  # Control destination namespaces
         reflector.v1.k8s.emberstack.com/reflection-auto-enabled: "true" # Auto create reflection for matching namespaces
