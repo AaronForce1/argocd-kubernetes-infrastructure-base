@@ -178,3 +178,4 @@ grafanaExternalSecret:
 # dashboardsToLoad: {} # directory name under dashboards
 dashboardsToLoad: # only dashboards under these directories will be loaded into grafana 
   - infrastructure
+  - ithacanoemon

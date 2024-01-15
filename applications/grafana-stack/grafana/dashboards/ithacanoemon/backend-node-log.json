@@ -1,0 +1,175 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Backend logs",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": 402,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "gridPos": {
+        "h": 16,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "dedupStrategy": "none",
+        "enableLogDetails": true,
+        "prettifyLogMessage": false,
+        "showCommonLabels": false,
+        "showLabels": false,
+        "showTime": false,
+        "sortOrder": "Descending",
+        "wrapLogMessage": false
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "editorMode": "code",
+          "expr": "{pod=~\"ithaca-${node:value}.*\"} |~ \"${msg:value}\"",
+          "key": "Q-ae191423-d785-42b1-bff1-df2d2f5b5b94-0",
+          "maxLines": 100,
+          "queryType": "range",
+          "refId": "podName"
+        }
+      ],
+      "title": "Backend logs",
+      "type": "logs"
+    }
+  ],
+  "refresh": "",
+  "schemaVersion": 38,
+  "style": "dark",
+  "tags": [],
+  "templating": {
+    "list": [
+      {
+        "allValue": ".*",
+        "current": {
+          "selected": true,
+          "text": "All",
+          "value": "$__all"
+        },
+        "hide": 0,
+        "includeAll": true,
+        "label": "Backend node",
+        "multi": false,
+        "name": "node",
+        "options": [
+          {
+            "selected": true,
+            "text": "All",
+            "value": "$__all"
+          },
+          {
+            "selected": false,
+            "text": "endpoint",
+            "value": "endpoint"
+          },
+          {
+            "selected": false,
+            "text": "matcher",
+            "value": "matcher"
+          },
+          {
+            "selected": false,
+            "text": "settlement",
+            "value": "settlement"
+          },
+          {
+            "selected": false,
+            "text": "webconsole",
+            "value": "webconsole"
+          },
+          {
+            "selected": false,
+            "text": "coordinator",
+            "value": "coordinator"
+          },
+          {
+            "selected": false,
+            "text": "validator",
+            "value": "validator"
+          },
+          {
+            "selected": false,
+            "text": "background",
+            "value": "background"
+          }
+        ],
+        "query": "endpoint,matcher,settlement,webconsole,coordinator,validator,background",
+        "queryValue": "",
+        "skipUrlSync": false,
+        "type": "custom"
+      },
+      {
+        "allValue": ".*",
+        "current": {
+          "selected": false,
+          "text": "",
+          "value": ""
+        },
+        "hide": 0,
+        "includeAll": true,
+        "label": "Message content",
+        "multi": false,
+        "name": "msg",
+        "options": [
+          {
+            "selected": false,
+            "text": "All",
+            "value": "$__all"
+          },
+          {
+            "selected": false,
+            "text": "ERROR",
+            "value": "ERROR"
+          },
+          {
+            "selected": false,
+            "text": "WARNING",
+            "value": "WARNING"
+          }
+        ],
+        "query": "ERROR,WARNING",
+        "queryValue": "",
+        "skipUrlSync": false,
+        "type": "custom"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "",
+  "title": "Backend logs",
+  "version": 14,
+  "weekStart": ""
+}
