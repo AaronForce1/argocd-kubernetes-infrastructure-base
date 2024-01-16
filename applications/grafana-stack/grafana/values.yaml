@@ -67,9 +67,11 @@ grafana:
     hosts:
       - grafana.${ARGOCD_ENV_DOMAIN}
 
-  # Temp only
-  adminUser: admin
-  adminPassword: admin
+  admin:
+    existingSecret: grafana-postgres-credentials
+    userKey: postgres-user
+    passwordKey: postgres-password
+
 
   initChownData:
     ## initChownData container image
@@ -152,12 +154,13 @@ grafana:
     mountPath: /etc/secrets/postgres
     readOnly: true    
 
-  podLabels: 
+  podLabels:
+    app: grafana
     cluster: ${ARGOCD_ENV_CLUSTER}
     project: ${ARGOCD_ENV_CLUSTER}
     env: ${ARGOCD_ENV_ENVIRONMENT}
     tier: infra
-    version: 6.29.11
+    version: 7.2.1
 
   useStatefulSet: true
 
