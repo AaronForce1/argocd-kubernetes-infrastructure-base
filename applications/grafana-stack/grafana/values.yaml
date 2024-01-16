@@ -8,6 +8,16 @@ grafana:
   nameOverride: grafana
   fullnameOverride: grafana
   kubeNamespace: grafana-stack
+
+  # assertNoLeakedSecrets is a helper function defined in _helpers.tpl that checks if secret
+  # values are not exposed in the rendered grafana.ini configmap. It is enabled by default.
+  #
+  # To pass values into grafana.ini without exposing them in a configmap, use variable expansion:
+  # https://grafana.com/docs/grafana/latest/setup-grafana/configure-grafana/#variable-expansion
+  #
+  # Alternatively, if you wish to allow secret values to be exposed in the rendered grafana.ini configmap,
+  # you can disable this check by setting assertNoLeakedSecrets to false.
+  assertNoLeakedSecrets: false
     
   replicas: 1
 
@@ -175,8 +185,8 @@ grafanaExternalSecret:
       remoteRef:
         key: /grafana/${ARGOCD_ENV_ENVIRONMENT}-${ARGOCD_ENV_CLUSTER}/admin/password
 
-
-# dashboardsToLoad: {} # directory name under dashboards
+dashboardReloaderEnabled: false
+# dashboardsToLoad: [] # directory name under dashboards
 dashboardsToLoad: # only dashboards under these directories will be loaded into grafana 
   - infrastructure
   - ithacanoemon
