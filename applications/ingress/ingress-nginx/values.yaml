@@ -37,6 +37,11 @@ ingress-nginx:
     configAnnotations:
       nginx.ingress.kubernetes.io/ssl-redirect: "true"
       nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+      nginx.ingress.kubernetes.io/configuration-snippet: |
+        # location block
+        if ($geoip_country_code ~* "^XX|YY$") {
+          return 403;
+        }
 
     podLabels:
       cluster: ${ARGOCD_ENV_CLUSTER}
