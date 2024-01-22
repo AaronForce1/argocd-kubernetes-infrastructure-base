@@ -133,6 +133,7 @@ grafana:
       auto_assign_org: true
       auto_assign_org_id: 1
       auto_assign_org_role: Editor
+      editors_can_admin: true
     auth.anonymous:
       enabled: false
       org_name: Dashboard
