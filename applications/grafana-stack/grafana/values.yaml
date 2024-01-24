@@ -194,6 +194,12 @@ grafana:
 
   useStatefulSet: true
 
+  alerting:
+    alert-group.yaml:
+      file: alerting/alertGroup.yaml
+    contact-points.yaml:
+      file: alerting/contact-points.yaml
+
 grafanaExternalSecret:
   enabled: false
   secretStore: secretstore
