@@ -61,6 +61,22 @@ grafana:
         jsonData:
           maxLines: 10000
           timeout: 600s
+      - name: rds
+        type: postgres
+        url: ''
+        user: ''
+        secureJsonData:
+          password: ''
+        jsonData:
+          database: ''
+          sslmode: 'disable' # disable/require/verify-ca/verify-full
+          maxOpenConns: 0 # Grafana v5.4+
+          maxIdleConns: 2 # Grafana v5.4+
+          connMaxLifetime: 14400 # Grafana v5.4+
+          postgresVersion: 1400 # 903=9.3, 904=9.4, 905=9.5, 906=9.6, 1000=10
+          timescaledb: false
+        # <bool> allow users to edit datasources from the UI.
+        editable: true
   
   persistence:
     type: statefulset
@@ -127,6 +143,9 @@ grafana:
       token_url: https://accounts.google.com/o/oauth2/token
       allowed_domains: ${ARGOCD_ENV_AUTH_DOMAINS}
       allow_sign_up: true
+      allow_assign_grafana_admin = true
+      skip_org_role_sync = false
+      role_attribute_path = email=='thanh.vo@ithacanoemon.tech' && 'GrafanaAdmin' || 'Editor'
     server:
       root_url: https://grafana.${ARGOCD_ENV_DOMAIN}
     users:
