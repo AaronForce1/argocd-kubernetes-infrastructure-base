@@ -1,0 +1,12 @@
+apiVersion: 1
+contactPoints:
+    - orgId: 1
+      name: backend-alert
+      receivers:
+        - uid: e6bc080b-9f85-4d22-bcce-3601539b9fa8
+          type: slack
+          settings:
+            text: '{{ .Alerts }}'
+            title: Backend error log
+            url: ${SLACK_WEBHOOK_URL}
+          disableResolveMessage: true

@@ -1,0 +1,95 @@
+apiVersion: 1
+groups:
+    - orgId: 1
+      name: Log group
+      folder: backend
+      interval: 5m
+      rules:
+        - uid: b0e3e512-43c5-4688-ac83-02bb4b04f2d9
+          title: Backend errror Alert
+          condition: C
+          data:
+            - refId: A
+              queryType: range
+              relativeTimeRange:
+                from: 600
+                to: 0
+              datasourceUid: loki
+              model:
+                datasource:
+                    type: loki
+                    uid: loki
+                editorMode: builder
+                expr: count(rate({app=~"ithaca-(background|cordinator|endpoint|matcher|settlement|validator|webconsole)"} |= `ERROR` [$__auto]))
+                intervalMs: 1000
+                maxDataPoints: 43200
+                maxLines: 100
+                queryType: range
+                refId: A
+            - refId: B
+              relativeTimeRange:
+                from: 600
+                to: 0
+              datasourceUid: __expr__
+              model:
+                conditions:
+                    - evaluator:
+                        params:
+                            - 0
+                            - 0
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params: []
+                      reducer:
+                        params: []
+                        type: avg
+                      type: query
+                datasource:
+                    name: Expression
+                    type: __expr__
+                    uid: __expr__
+                expression: A
+                intervalMs: 1000
+                maxDataPoints: 43200
+                reducer: sum
+                refId: B
+                type: reduce
+            - refId: C
+              relativeTimeRange:
+                from: 600
+                to: 0
+              datasourceUid: __expr__
+              model:
+                conditions:
+                    - evaluator:
+                        params:
+                            - 0
+                            - 0
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params: []
+                      reducer:
+                        params: []
+                        type: avg
+                      type: query
+                datasource:
+                    name: Expression
+                    type: __expr__
+                    uid: __expr__
+                expression: $B > 0
+                intervalMs: 1000
+                maxDataPoints: 43200
+                refId: C
+                type: math
+          noDataState: OK
+          execErrState: Alerting
+          for: 5m
+          annotations:
+            summary: Errors on backend. Please check
+          labels:
+            evn: ${ARGOCD_ENV_ENVIRONMENT}
+          isPaused: false
